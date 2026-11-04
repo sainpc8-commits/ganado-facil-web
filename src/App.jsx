@@ -1,23 +1,23 @@
 import React, { useState, useEffect } from 'react';
+import { 
+  Beef, Activity, Syringe, Scale, Search, 
+  Plus, ArrowLeft, Edit, Trash2, Utensils, ChevronRight 
+} from 'lucide-react';
 
 const INITIAL_DATA = {
-  gruposRazas: [
-    { id: 101, nombre: 'Raza Brahman', descripcion: 'Resistente al clima cálido y parásitos.', icono: '🐂' },
-    { id: 102, nombre: 'Raza Nelore', descripcion: 'Excelente para producción de carne y robustez.', icono: '🐃' },
-    { id: 103, nombre: 'Raza Gyr', descripcion: 'Alta producción lechera en clima tropical.', icono: '🐄' },
-    { id: 104, nombre: 'Raza Brangus', descripcion: 'Excelente combinación de rusticidad y calidad cárnica.', icono: '🐂' },
-    { id: 105, nombre: 'Raza Angus', descripcion: 'Reconocida mundialmente por su alta calidad de carne.', icono: '🐃' },
-    { id: 106, nombre: 'Raza Limousin', descripcion: 'Gran musculatura y rendimiento en canal.', icono: '🐄' },
-    { id: 107, nombre: 'Raza Senepol', descripcion: 'Tolerancia al calor extremo y resistencia natural a parásitos.', icono: '🐂' }
+  bloques: [
+    { id: 101, nombre: 'Lote El Pastizal', raza: 'Brahman', descripcion: 'Resistentes al clima cálido.', color: '#059669' },
+    { id: 102, nombre: 'Lote La Lechera', raza: 'Gyr', descripcion: 'Alta producción lechera.', color: '#0284c7' }
   ],
   animales: [
     {
       id: 'internal-001',
       codigo: '1',
-      grupoId: 101,
+      bloqueId: 101,
       fechaNacimiento: '2022-03-15',
       pesoActual: 450,
       estado: 'Saludable',
+      notas: 'Animal de buena genética.',
       historialPesos: [
         { fecha: '2023-01-10', peso: 280 },
         { fecha: '2023-08-20', peso: 370 },
@@ -26,10 +26,15 @@ const INITIAL_DATA = {
       vacunas: [
         { id: 1, vacuna: 'Rabia bovina', fecha: '2025-01-10', dosis: '2 ml' },
         { id: 2, vacuna: 'Ivermectina', fecha: '2025-10-01', dosis: '10 ml' }
+      ],
+      alimentacion: [
+        { id: 1, tipo: 'Pasto Brachiaria', cantidad: '15 kg', fecha: '2024-03-01' }
       ]
     }
   ]
 };
+
+const RAZAS_DISPONIBLES = ['Brahman', 'Nelore', 'Gyr', 'Brangus', 'Angus', 'Limousin', 'Senepol'];
 
 const VADEMECUM_MEDICAMENTOS = [
   // Vacunas Bovinas (15)
@@ -71,6 +76,7 @@ const LISTA_VACUNAS_ANUALES = VADEMECUM_MEDICAMENTOS.filter(m => m.tipo === 'Vac
 const LISTA_CONTROL_PARASITARIO = VADEMECUM_MEDICAMENTOS.filter(m => m.tipo.includes('Antiparasitario')).map(m => m.nombre);
 
 const calcularEdad = (fechaNac) => {
+  if(!fechaNac) return "No registrada";
   const nac = new Date(fechaNac);
   const hoy = new Date();
   let meses = (hoy.getFullYear() - nac.getFullYear()) * 12 + (hoy.getMonth() - nac.getMonth());
@@ -80,6 +86,7 @@ const calcularEdad = (fechaNac) => {
   return `${años > 0 ? `${años} año(s) ` : ''}${mesesRestantes} mes(es)`;
 };
 
+// Función de Alerta Inteligente (Recuperada de tu código original)
 const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
   const hoy = new Date();
   const fechaApp = new Date(fechaAplicacion);
@@ -90,666 +97,395 @@ const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
 
   if (esAnual) {
     if (diferenciaDias > 330) {
-      return { texto: `⚠️ Refuerzo Anual Vencido (${diferenciaDias} días)`, colorBg: '#fef2f2', colorTxt: '#dc2626', borde: '#fecaca' };
+      return { texto: `⚠️ Refuerzo Vencido (${diferenciaDias} d)`, colorBg: '#fef2f2', colorTxt: '#dc2626' };
     } else if (diferenciaDias > 270) {
-      return { texto: `⚡ Próximo a vencer (${diferenciaDias} días)`, colorBg: '#fef3c7', colorTxt: '#d97706', borde: '#fde68a' };
+      return { texto: `⚡ Próximo a vencer (${diferenciaDias} d)`, colorBg: '#fef3c7', colorTxt: '#d97706' };
     } else {
-      return { texto: `✅ Vacuna al día (${diferenciaDias} días)`, colorBg: '#ecfdf5', colorTxt: '#059669', borde: '#a7f3d0' };
+      return { texto: `✅ Al día (${diferenciaDias} d)`, colorBg: '#ecfdf5', colorTxt: '#059669' };
     }
   } else if (esParasito) {
     if (diferenciaDias > 120) {
-      return { texto: `⚠️ Nuevo Baño/Dosis Necesaria (${diferenciaDias} días)`, colorBg: '#fef2f2', colorTxt: '#dc2626', borde: '#fecaca' };
+      return { texto: `⚠️ Baño/Dosis Necesaria (${diferenciaDias} d)`, colorBg: '#fef2f2', colorTxt: '#dc2626' };
     } else if (diferenciaDias > 90) {
-      return { texto: `⚡ Control próximo (${diferenciaDias} días)`, colorBg: '#fef3c7', colorTxt: '#d97706', borde: '#fde68a' };
+      return { texto: `⚡ Control próximo (${diferenciaDias} d)`, colorBg: '#fef3c7', colorTxt: '#d97706' };
     } else {
-      return { texto: `✅ Protección activa (${diferenciaDias} días)`, colorBg: '#ecfdf5', colorTxt: '#059669', borde: '#a7f3d0' };
+      return { texto: `✅ Protección activa (${diferenciaDias} d)`, colorBg: '#ecfdf5', colorTxt: '#059669' };
     }
   } else {
-    return { texto: `🛡️ Tratamiento único (${diferenciaDias} días)`, colorBg: '#eff6ff', colorTxt: '#1d4ed8', borde: '#bfdbfe' };
+    return { texto: `🛡️ Tratamiento único (${diferenciaDias} d)`, colorBg: '#eff6ff', colorTxt: '#1d4ed8' };
   }
 };
 
 export default function App() {
   const [datos, setDatos] = useState(() => {
-    const datosGuardados = localStorage.getItem('ganado_facil_datos');
-    if (datosGuardados) {
-      try { return JSON.parse(datosGuardados); } catch (e) { console.error(e); }
-    }
-    return INITIAL_DATA;
+    const guardados = localStorage.getItem('ganado_facil_v2');
+    return guardados ? JSON.parse(guardados) : INITIAL_DATA;
   });
 
-  const [vistaActual, setVistaActual] = useState('INICIO');
-  const [grupoSeleccionado, setGrupoSeleccionado] = useState(null);
-  const [animalSeleccionadoId, setAnimalSeleccionadoId] = useState(null);
-  const [busquedaCodigo, setBusquedaCodigo] = useState('');
+  const [vista, setVista] = useState('INICIO');
+  const [bloqueSel, setBloqueSel] = useState(null);
+  const [animalSelId, setAnimalSelId] = useState(null);
+  const [busqueda, setBusqueda] = useState('');
 
-  const [mostrarModalNuevo, setMostrarModalNuevo] = useState(false);
-  const [nuevoCodigo, setNuevoCodigo] = useState('');
-  const [nuevoPeso, setNuevoPeso] = useState('');
-  const [nuevaFechaNac, setNuevaFechaNac] = useState('');
-  const [nuevoEstado, setNuevoEstado] = useState('Saludable');
+  // Modales
+  const [modalNuevoBloque, setModalNuevoBloque] = useState(false);
+  const [modalNuevoAnimal, setModalNuevoAnimal] = useState(false);
+  const [modalActualizar, setModalActualizar] = useState(false);
+  const [modalVacuna, setModalVacuna] = useState(false);
+  const [modalAlimento, setModalAlimento] = useState(false);
 
-  const [mostrarModalActualizar, setMostrarModalActualizar] = useState(false);
-  const [pesoNuevoRegistro, setPesoNuevoRegistro] = useState('');
-  const [estadoNuevoRegistro, setEstadoNuevoRegistro] = useState('');
-
-  const [mostrarModalVacuna, setMostrarModalVacuna] = useState(false);
-  const [nombreVacuna, setNombreVacuna] = useState('');
-  const [fechaVacuna, setFechaVacuna] = useState('');
-  const [dosisVacuna, setDosisVacuna] = useState('');
+  // Formularios
+  const [formBloque, setFormBloque] = useState({ nombre: '', raza: 'Brahman', descripcion: '' });
+  const [formAnimal, setFormAnimal] = useState({ codigo: '', peso: '', fechaNac: '', notas: '', estado: 'Saludable' });
+  const [formPeso, setFormPeso] = useState({ peso: '', estado: '' });
+  const [formVacuna, setFormVacuna] = useState({ nombre: '', fecha: '', dosis: '' });
+  const [formAlimento, setFormAlimento] = useState({ tipo: '', cantidad: '', fecha: '' });
 
   useEffect(() => {
-    localStorage.setItem('ganado_facil_datos', JSON.stringify(datos));
+    localStorage.setItem('ganado_facil_v2', JSON.stringify(datos));
   }, [datos]);
 
-  const animalSeleccionado = datos.animales.find(a => a.id === animalSeleccionadoId);
+  const animalSel = datos.animales.find(a => a.id === animalSelId);
 
-  const obtenerAnimalesDelGrupo = () => {
-    if (!grupoSeleccionado) return [];
-    return datos.animales.filter(a => {
-      const perteneceAlGrupo = a.grupoId === grupoSeleccionado.id;
-      const coincideCodigo = busquedaCodigo === '' || a.codigo.toString().includes(busquedaCodigo.trim());
-      return perteneceAlGrupo && coincideCodigo;
-    });
-  };
-
-  const abrirModalNuevoAnimal = () => {
-    setNuevoCodigo('');
-    setNuevoPeso('');
-    setNuevaFechaNac('');
-    setNuevoEstado('Saludable');
-    setMostrarModalNuevo(true);
-  };
-
-  const manejarAgregarAnimal = (e) => {
+  // --- ACCIONES ---
+  const crearBloque = (e) => {
     e.preventDefault();
-    if (!nuevoCodigo || !nuevoPeso || !nuevaFechaNac) {
-      alert('Por favor complete todos los campos obligatorios.');
-      return;
-    }
-
-    const codigoLimpio = nuevoCodigo.trim();
-    const codigoExistente = datos.animales.some(
-      a => a.grupoId === grupoSeleccionado.id && a.codigo.toLowerCase() === codigoLimpio.toLowerCase()
-    );
-
-    if (codigoExistente) {
-      alert(`⚠️ El código "${codigoLimpio}" ya está registrado en este grupo.`);
-      return;
-    }
-
-    const nuevoAnimal = {
-      id: 'internal-' + Date.now(),
-      codigo: codigoLimpio,
-      grupoId: grupoSeleccionado.id,
-      fechaNacimiento: nuevaFechaNac,
-      pesoActual: Number(nuevoPeso),
-      estado: nuevoEstado,
-      historialPesos: [{ fecha: new Date().toISOString().split('T')[0], peso: Number(nuevoPeso) }],
-      vacunas: []
-    };
-
-    setDatos(prev => ({ ...prev, animales: [nuevoAnimal, ...prev.animales] }));
-    setMostrarModalNuevo(false);
+    const nuevo = { id: Date.now(), ...formBloque };
+    setDatos(prev => ({ ...prev, bloques: [...prev.bloques, nuevo] }));
+    setModalNuevoBloque(false);
   };
 
-  const manejarActualizarAnimal = (e) => {
+  const crearAnimal = (e) => {
+    e.preventDefault();
+    if(datos.animales.some(a => a.bloqueId === bloqueSel.id && a.codigo === formAnimal.codigo)) {
+      return alert("El código ya existe en este bloque.");
+    }
+    const nuevo = {
+      id: 'int-' + Date.now(),
+      codigo: formAnimal.codigo,
+      bloqueId: bloqueSel.id,
+      fechaNacimiento: formAnimal.fechaNac,
+      pesoActual: Number(formAnimal.peso),
+      estado: formAnimal.estado,
+      notas: formAnimal.notas,
+      historialPesos: [{ fecha: new Date().toISOString().split('T')[0], peso: Number(formAnimal.peso) }],
+      vacunas: [],
+      alimentacion: []
+    };
+    setDatos(prev => ({ ...prev, animales: [nuevo, ...prev.animales] }));
+    setModalNuevoAnimal(false);
+  };
+
+  const actualizarAnimal = (e) => {
     e.preventDefault();
     const fechaHoy = new Date().toISOString().split('T')[0];
     setDatos(prev => ({
       ...prev,
       animales: prev.animales.map(a => {
-        if (a.id === animalSeleccionadoId) {
-          const pesoNum = pesoNuevoRegistro ? Number(pesoNuevoRegistro) : a.pesoActual;
-          const nuevoHistorial = pesoNuevoRegistro 
-            ? [...a.historialPesos, { fecha: fechaHoy, peso: pesoNum }]
-            : a.historialPesos;
+        if (a.id === animalSelId) {
+          const nuevoHistorial = formPeso.peso ? [...a.historialPesos, { fecha: fechaHoy, peso: Number(formPeso.peso) }] : a.historialPesos;
           return {
             ...a,
-            pesoActual: pesoNum,
-            estado: estadoNuevoRegistro || a.estado,
+            pesoActual: formPeso.peso ? Number(formPeso.peso) : a.pesoActual,
+            estado: formPeso.estado || a.estado,
             historialPesos: nuevoHistorial
           };
         }
         return a;
       })
     }));
-    setMostrarModalActualizar(false);
+    setModalActualizar(false);
   };
 
-  const manejarAgregarVacuna = (e) => {
+  const agregarVacuna = (e) => {
     e.preventDefault();
-    if (!nombreVacuna || !fechaVacuna || !dosisVacuna) {
-      alert('Por favor complete los detalles del tratamiento.');
-      return;
-    }
-    const nuevaVacunaObj = {
-      id: Date.now(),
-      vacuna: nombreVacuna.trim(),
-      fecha: fechaVacuna,
-      dosis: dosisVacuna.trim()
-    };
-
+    const nueva = { id: Date.now(), ...formVacuna };
     setDatos(prev => ({
       ...prev,
-      animales: prev.animales.map(a => {
-        if (a.id === animalSeleccionadoId) {
-          return { ...a, vacunas: [...a.vacunas, nuevaVacunaObj] };
-        }
-        return a;
-      })
+      animales: prev.animales.map(a => a.id === animalSelId ? { ...a, vacunas: [...a.vacunas, nueva] } : a)
     }));
-
-    setNombreVacuna('');
-    setFechaVacuna('');
-    setDosisVacuna('');
-    setMostrarModalVacuna(false);
+    setModalVacuna(false);
   };
 
-  const eliminarAnimal = (idAnimal) => {
-    if (window.confirm('¿Está seguro de eliminar este animal del registro?')) {
-      setDatos(prev => ({ ...prev, animales: prev.animales.filter(a => a.id !== idAnimal) }));
-      setVistaActual('ANIMALES');
-      setAnimalSeleccionadoId(null);
+  const agregarAlimento = (e) => {
+    e.preventDefault();
+    const nuevo = { id: Date.now(), ...formAlimento };
+    setDatos(prev => ({
+      ...prev,
+      animales: prev.animales.map(a => a.id === animalSelId ? { ...a, alimentacion: [...(a.alimentacion || []), nuevo] } : a)
+    }));
+    setModalAlimento(false);
+  };
+
+  const eliminarAnimal = (id) => {
+    if (window.confirm('¿Eliminar este animal?')) {
+      setDatos(prev => ({ ...prev, animales: prev.animales.filter(a => a.id !== id) }));
+      setVista('ANIMALES');
     }
-  };
-
-  const generarPDF = () => {
-    window.print();
   };
 
   return (
     <div className="app-container">
-      <header className="app-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      {/* HEADER */}
+      <header className="app-header">
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <span style={{ fontSize: '24px' }}>🐂</span>
+          <Beef size={28} />
           <div>
-            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>Ganado Fácil 🌾</h1>
-            <p style={{ margin: 0, fontSize: '11px', color: '#a7f3d0' }}>Control Pecuario Profesional</p>
+            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>Ganado Fácil</h1>
+            <p style={{ margin: 0, fontSize: '11px', opacity: 0.8 }}>Control Pecuario</p>
           </div>
         </div>
-        {vistaActual !== 'INICIO' && (
-          <button 
-            className="no-print"
-            onClick={() => {
-              if (vistaActual === 'FICHA') setVistaActual('ANIMALES');
-              else if (vistaActual === 'ANIMALES' || vistaActual === 'GUIA') setVistaActual('INICIO');
-              else setVistaActual('INICIO');
-            }}
-            style={{ background: '#065f46', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '8px', cursor: 'pointer', fontSize: '12px', fontWeight: 'bold' }}
-          >
-            ← Volver
+        {vista !== 'INICIO' && (
+          <button className="btn-secondary" style={{ width: 'auto', padding: '6px 12px', background: 'rgba(255,255,255,0.2)', color: 'white' }} onClick={() => {
+            if (vista === 'FICHA') setVista('ANIMALES');
+            else setVista('INICIO');
+          }}>
+            <ArrowLeft size={16} />
           </button>
         )}
       </header>
 
       <main style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
         
-        {vistaActual === 'INICIO' && (
+        {/* VISTA INICIO */}
+        {vista === 'INICIO' && (
           <>
-            <div className="card-box" style={{ background: 'linear-gradient(135deg, #059669, #047857)', color: 'white', textAlign: 'center' }}>
-              <span style={{ fontSize: '40px' }}>🏡 🐄</span>
-              <h2 style={{ fontSize: '18px', margin: '8px 0', color: 'white' }}>¡Bienvenido a su Finca!</h2>
-              <p style={{ fontSize: '12px', color: '#e6fffa', marginBottom: '16px' }}>
-                Gestione de forma limpia y moderna el peso, la salud y los registros de su ganado por razas.
-              </p>
-              <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-                <button className="btn-primary" style={{ background: 'white', color: '#065f46', flex: 1 }} onClick={() => setVistaActual('GRUPOS')}>
-                  Ver Razas 📋
-                </button>
-                <button className="btn-primary" style={{ background: '#047857', border: '1px solid #a7f3d0', color: 'white', flex: 1 }} onClick={() => setVistaActual('GUIA')}>
-                  Guía Sanitaria 🛡️
-                </button>
-              </div>
-            </div>
-
-            <div className="card-box">
-              <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#047857', marginBottom: '12px', textAlign: 'center', margin: '0 0 12px 0' }}>
-                📊 Resumen General del Hato
-              </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', textAlign: 'center' }}>
-                <div style={{ background: '#ecfdf5', padding: '12px', borderRadius: '12px', border: '1px solid #a7f3d0' }}>
-                  <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#047857', margin: 0 }}>{datos.gruposRazas.length}</p>
-                  <p style={{ fontSize: '11px', color: '#475569', margin: '4px 0 0 0' }}>Razas 🧬</p>
-                </div>
-                <div style={{ background: '#ecfdf5', padding: '12px', borderRadius: '12px', border: '1px solid #a7f3d0' }}>
-                  <p style={{ fontSize: '22px', fontWeight: 'bold', color: '#047857', margin: 0 }}>{datos.animales.length}</p>
-                  <p style={{ fontSize: '11px', color: '#475569', margin: '4px 0 0 0' }}>Animales 🐂</p>
-                </div>
-              </div>
-            </div>
-          </>
-        )}
-
-        {/* VISTA DE GUÍA SANITARIA ORGANIZADA POR DESCRIPCIÓN (SIN BUSCADOR) */}
-        {vistaActual === 'GUIA' && (
-          <>
-            <div className="card-box" style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', textAlign: 'center' }}>
-              <h2 style={{ fontSize: '15px', textTransform: 'uppercase', color: '#047857', margin: '0 0 4px 0', fontWeight: 'bold' }}>
-                🛡️ Guía Sanitaria y Medicamentos
+            <div className="card-box" style={{ background: 'linear-gradient(135deg, #059669, #047857)', color: 'white' }}>
+              <h2 style={{ fontSize: '18px', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity /> Mis Bloques
               </h2>
-              <p style={{ fontSize: '12px', color: '#475569', margin: 0 }}>
-                Manual de consulta con la descripción y propósito de cada vacuna y antiparasitario del sistema.
-              </p>
+              <p style={{ fontSize: '12px', marginBottom: '16px', opacity: 0.9 }}>Gestione sus lotes de ganado</p>
+              <button className="btn-primary" style={{ background: 'white', color: '#047857' }} onClick={() => setModalNuevoBloque(true)}>
+                <Plus size={16} /> Crear Nuevo Bloque
+              </button>
             </div>
 
-            <div className="card-box">
-              <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: '#047857', borderBottom: '2px solid #a7f3d0', paddingBottom: '6px', marginBottom: '12px', fontWeight: 'bold' }}>
-                🛡️ Vacunas Bovinas (Plan Anual)
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {VADEMECUM_MEDICAMENTOS.filter(m => m.tipo === 'Vacuna Anual').map((med, idx) => (
-                  <div key={idx} style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#1e293b' }}>🧪 {med.nombre}</span>
-                      <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '6px', background: '#d1fae5', color: '#065f46' }}>
-                        {med.tipo}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: '1.4' }}>
-                      {med.desc}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="card-box">
-              <h3 style={{ fontSize: '13px', textTransform: 'uppercase', color: '#0369a1', borderBottom: '2px solid #bae6fd', paddingBottom: '6px', marginBottom: '12px', fontWeight: 'bold' }}>
-                🧴 Antiparasitarios y Garrapaticidas
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {VADEMECUM_MEDICAMENTOS.filter(m => m.tipo.includes('Antiparasitario')).map((med, idx) => (
-                  <div key={idx} style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2px' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '13px', color: '#1e293b' }}>🧪 {med.nombre}</span>
-                      <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '2px 8px', borderRadius: '6px', background: '#e0f2fe', color: '#0369a1' }}>
-                        {med.tipo}
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#475569', margin: 0, lineHeight: '1.4' }}>
-                      {med.desc}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
-        )}
-
-        {vistaActual === 'GRUPOS' && (
-          <>
-            <h2 style={{ fontSize: '13px', textTransform: 'uppercase', color: '#047857', margin: '0 0 4px 0', fontWeight: 'bold' }}>
-              🧬 Razas Disponibles (7 en total)
-            </h2>
-            {datos.gruposRazas.map((grupo) => {
-              const count = datos.animales.filter(a => a.grupoId === grupo.id).length;
+            {datos.bloques.map(b => {
+              const count = datos.animales.filter(a => a.bloqueId === b.id).length;
               return (
-                <div 
-                  key={grupo.id} 
-                  className="card-box" 
-                  onClick={() => { setGrupoSeleccionado(grupo); setBusquedaCodigo(''); setVistaActual('ANIMALES'); }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-                    <span style={{ fontWeight: 'bold', fontSize: '14px', color: '#1e293b' }}>{grupo.icono} {grupo.nombre}</span>
-                    <span style={{ fontSize: '11px', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold' }}>
-                      {count} Cabezas
+                <div key={b.id} className="card-box" style={{ cursor: 'pointer', borderLeft: `4px solid ${b.color || '#059669'}` }} onClick={() => { setBloqueSel(b); setVista('ANIMALES'); }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <h3 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{b.nombre}</h3>
+                    <span style={{ fontSize: '11px', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                      {count} Animales
                     </span>
                   </div>
-                  <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>{grupo.descripcion}</p>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>Raza: {b.raza} • {b.descripcion}</p>
                 </div>
               );
             })}
           </>
         )}
 
-        {vistaActual === 'ANIMALES' && grupoSeleccionado && (
+        {/* VISTA LISTA DE ANIMALES */}
+        {vista === 'ANIMALES' && bloqueSel && (
           <>
-            <div className="card-box" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <div>
-                <span style={{ fontSize: '10px', fontWeight: 'bold', color: '#047857', textTransform: 'uppercase' }}>Grupo Activo</span>
-                <h3 style={{ margin: 0, fontSize: '14px', color: '#1e293b' }}>{grupoSeleccionado.nombre}</h3>
+                <h2 style={{ margin: 0, fontSize: '16px', color: '#1e293b' }}>{bloqueSel.nombre}</h2>
+                <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>Raza: {bloqueSel.raza}</p>
               </div>
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button 
-                  className="no-print"
-                  onClick={generarPDF}
-                  style={{ background: '#0284c7', color: 'white', border: 'none', padding: '8px 10px', borderRadius: '8px', cursor: 'pointer', fontSize: '11px', fontWeight: 'bold' }}
-                >
-                  📥 Reporte Raza PDF
-                </button>
-                <button className="btn-primary no-print" style={{ width: 'auto', fontSize: '12px', padding: '8px 12px' }} onClick={abrirModalNuevoAnimal}>
-                  + Nuevo
-                </button>
+              <button className="btn-primary" style={{ width: 'auto', padding: '6px 12px' }} onClick={() => { setFormAnimal({ codigo: '', peso: '', fechaNac: '', notas: '', estado: 'Saludable' }); setModalNuevoAnimal(true); }}>
+                <Plus size={16} /> Nuevo
+              </button>
+            </div>
+
+            <div className="card-box" style={{ padding: '8px 12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 10px', borderRadius: '8px' }}>
+                <Search size={16} color="#64748b" />
+                <input type="text" placeholder="Buscar por código..." value={busqueda} onChange={e => setBusqueda(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px' }} />
               </div>
             </div>
 
-            <div className="card-box no-print">
-              <label style={{ fontSize: '12px', fontWeight: 'bold', color: '#334155', display: 'block', marginBottom: '6px' }}>🔍 Buscar por Código:</label>
-              <input 
-                type="text" 
-                placeholder="Escriba el código..." 
-                value={busquedaCodigo} 
-                onChange={(e) => setBusquedaCodigo(e.target.value)}
-                style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box', fontSize: '12px', outline: 'none' }}
-              />
-            </div>
-
-            {obtenerAnimalesDelGrupo().length === 0 ? (
-              <div className="card-box" style={{ textAlign: 'center', color: '#64748b', fontSize: '12px' }}>
-                No se encontraron animales con ese código en este grupo. 🌾
-              </div>
-            ) : (
-              obtenerAnimalesDelGrupo().map((animal) => (
-                <div 
-                  key={animal.id} 
-                  className="card-box" 
-                  onClick={() => { setAnimalSeleccionadoId(animal.id); setVistaActual('FICHA'); }}
-                  style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-                >
-                  <div>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      <span style={{ fontSize: '11px', fontWeight: 'bold', background: '#d1fae5', color: '#065f46', padding: '2px 6px', borderRadius: '6px' }}>
-                        #{animal.codigo} 🏷️
-                      </span>
-                      <span style={{ fontSize: '10px', fontWeight: 'bold', padding: '2px 6px', borderRadius: '4px', background: animal.estado === 'Saludable' ? '#d1fae5' : '#fef3c7', color: animal.estado === 'Saludable' ? '#065f46' : '#92400e' }}>
-                        {animal.estado} 🩺
-                      </span>
-                    </div>
-                    <p style={{ fontSize: '12px', color: '#475569', margin: '6px 0 0 0' }}>
-                      Peso: <strong>{animal.pesoActual} kg ⚖️</strong> • {calcularEdad(animal.fechaNacimiento)} 🎂
-                    </p>
+            {datos.animales.filter(a => a.bloqueId === bloqueSel.id && a.codigo.includes(busqueda)).map(a => (
+              <div key={a.id} className="card-box" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => { setAnimalSelId(a.id); setVista('FICHA'); }}>
+                <div>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 'bold', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px' }}>#{a.codigo}</span>
+                    <span style={{ fontSize: '11px', fontWeight: 'bold', background: a.estado === 'Saludable' ? '#d1fae5' : '#fef3c7', color: a.estado === 'Saludable' ? '#065f46' : '#92400e', padding: '2px 8px', borderRadius: '6px' }}>{a.estado}</span>
                   </div>
-                  <span style={{ fontSize: '12px', fontWeight: 'bold', color: '#047857' }}>Ver →</span>
+                  <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                    <Scale size={14} /> {a.pesoActual} kg • {calcularEdad(a.fechaNacimiento)}
+                  </p>
                 </div>
-              ))
-            )}
-
-            {mostrarModalNuevo && (
-              <div className="no-print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-                <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '20px', padding: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
-                    <h3 style={{ margin: 0, fontSize: '14px', color: '#1e293b' }}>🐂 Registrar Nuevo Animal</h3>
-                    <button onClick={() => setMostrarModalNuevo(false)} style={{ background: 'none', border: 'none', fontSize: '16px', cursor: 'pointer', color: '#64748b' }}>✕</button>
-                  </div>
-
-                  <form onSubmit={manejarAgregarAnimal} style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Código Único Visible * 🏷️</label>
-                      <input type="text" placeholder="Ej. 105" value={nuevoCodigo} onChange={(e) => setNuevoCodigo(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Peso Inicial (kg) * ⚖️</label>
-                      <input type="number" placeholder="Ej. 350" value={nuevoPeso} onChange={(e) => setNuevoPeso(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Fecha de Nacimiento * 📅</label>
-                      <input type="date" value={nuevaFechaNac} onChange={(e) => setNuevaFechaNac(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Estado de Salud 🩺</label>
-                      <select value={nuevoEstado} onChange={(e) => setNuevoEstado(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}>
-                        <option value="Saludable">Saludable 🟢</option>
-                        <option value="En Tratamiento">En Tratamiento 🟡</option>
-                        <option value="Gestante">Gestante 🟣</option>
-                      </select>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                      <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setMostrarModalNuevo(false)}>Cancelar</button>
-                      <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar 💾</button>
-                    </div>
-                  </form>
-                </div>
+                <ChevronRight size={18} color="#94a3b8" />
               </div>
-            )}
+            ))}
           </>
         )}
 
-        {vistaActual === 'FICHA' && animalSeleccionado && (
+        {/* VISTA FICHA DEL ANIMAL */}
+        {vista === 'FICHA' && animalSel && (
           <>
-            <div className="card-box">
+            <div className="card-box" style={{ borderTop: '4px solid #059669' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
-                <h3 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>📋 Ficha del Animal #{animalSeleccionado.codigo}</h3>
-                <span style={{ fontSize: '11px', fontWeight: 'bold', background: '#d1fae5', color: '#065f46', padding: '3px 8px', borderRadius: '6px' }}>
-                  {animalSeleccionado.estado} 🩺
-                </span>
+                <h2 style={{ margin: 0, fontSize: '16px', color: '#1e293b' }}>Ficha #{animalSel.codigo}</h2>
+                <span style={{ fontSize: '12px', fontWeight: 'bold', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '6px' }}>{animalSel.estado}</span>
+              </div>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px', marginBottom: '16px' }}>
+                <div><span style={{ color: '#64748b' }}>Peso Actual:</span><br/><strong style={{ fontSize: '16px', color: '#047857' }}>{animalSel.pesoActual} kg</strong></div>
+                <div><span style={{ color: '#64748b' }}>Edad:</span><br/><strong>{calcularEdad(animalSel.fechaNacimiento)}</strong></div>
+                <div><span style={{ color: '#64748b' }}>Nacimiento:</span><br/><strong>{animalSel.fechaNacimiento || 'No reg.'}</strong></div>
+                <div><span style={{ color: '#64748b' }}>Notas:</span><br/><span style={{ fontStyle: 'italic' }}>{animalSel.notas || 'Sin notas'}</span></div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', background: '#ecfdf5', padding: '12px', borderRadius: '12px', marginBottom: '12px', fontSize: '12px', border: '1px solid #a7f3d0' }}>
-                <div>
-                  <span style={{ color: '#64748b', fontWeight: '500' }}>Edad Calculada:</span>
-                  <p style={{ margin: '2px 0 0 0', fontWeight: 'bold', color: '#1e293b' }}>{calcularEdad(animalSeleccionado.fechaNacimiento)} 🎂</p>
-                </div>
-                <div>
-                  <span style={{ color: '#64748b', fontWeight: '500' }}>Peso Actual:</span>
-                  <p style={{ margin: '2px 0 0 0', fontWeight: 'bold', color: '#047857', fontSize: '14px' }}>{animalSeleccionado.pesoActual} kg ⚖️</p>
-                </div>
-                <div style={{ gridColumn: 'span 2', borderTop: '1px solid #a7f3d0', paddingTop: '6px', marginTop: '4px' }}>
-                  <span style={{ color: '#64748b', fontWeight: '500' }}>Fecha de Nacimiento:</span>
-                  <p style={{ margin: '2px 0 0 0', fontWeight: 'bold', color: '#1e293b' }}>{animalSeleccionado.fechaNacimiento} 📅</p>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }} className="no-print">
-                <button 
-                  className="btn-primary" 
-                  onClick={() => {
-                    setPesoNuevoRegistro(animalSeleccionado.pesoActual);
-                    setEstadoNuevoRegistro(animalSeleccionado.estado);
-                    setMostrarModalActualizar(true);
-                  }}
-                >
-                  Actualizar ⚖️
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                <button className="btn-primary" onClick={() => { setFormPeso({ peso: animalSel.pesoActual, estado: animalSel.estado }); setModalActualizar(true); }}>
+                  <Edit size={14} /> Peso / Estado
                 </button>
-                <button 
-                  onClick={generarPDF}
-                  style={{ background: '#0284c7', color: 'white', border: 'none', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px', fontSize: '12px' }}
-                >
-                  📥 Ficha PDF
-                </button>
-                <button 
-                  onClick={() => eliminarAnimal(animalSeleccionado.id)}
-                  style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', borderRadius: '12px', fontWeight: 'bold', cursor: 'pointer', padding: '10px' }}
-                >
-                  Eliminar 🗑️
+                <button className="btn-secondary" style={{ background: '#fee2e2', color: '#dc2626', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }} onClick={() => eliminarAnimal(animalSel.id)}>
+                  <Trash2 size={14} /> Eliminar
                 </button>
               </div>
             </div>
 
-            {mostrarModalActualizar && (
-              <div className="no-print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-                <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '20px', padding: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
-                    <h3 style={{ margin: 0, fontSize: '14px', color: '#1e293b' }}>Actualizar #{animalSeleccionado.codigo} 📋</h3>
-                    <button onClick={() => setMostrarModalActualizar(false)} style={{ background: 'none', border: 'none', fontSize: '16px', cursor: 'pointer', color: '#64748b' }}>✕</button>
-                  </div>
-
-                  <form onSubmit={manejarActualizarAnimal} style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Nuevo Peso (kg) ⚖️</label>
-                      <input type="number" value={pesoNuevoRegistro} onChange={(e) => setPesoNuevoRegistro(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Estado de Salud 🩺</label>
-                      <select value={estadoNuevoRegistro} onChange={(e) => setEstadoNuevoRegistro(e.target.value)} style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box' }}>
-                        <option value="Saludable">Saludable 🟢</option>
-                        <option value="En Tratamiento">En Tratamiento 🟡</option>
-                        <option value="Gestante">Gestante 🟣</option>
-                      </select>
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                      <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setMostrarModalActualizar(false)}>Cancelar</button>
-                      <button type="submit" className="btn-primary" style={{ flex: 1 }}>Actualizar 💾</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-
+            {/* SECCIÓN VACUNAS CON ALERTA INTELIGENTE */}
             <div className="card-box">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#047857', margin: 0, fontWeight: 'bold' }}>
-                  💉 Historial Sanitario y Alertas
-                </h3>
-                <button 
-                  className="no-print"
-                  onClick={() => {
-                    setNombreVacuna('');
-                    setFechaVacuna('');
-                    setDosisVacuna('');
-                    setMostrarModalVacuna(true);
-                  }}
-                  style={{ background: '#059669', color: 'white', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }}
-                >
-                  + Agregar Tratamiento
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: '#1e293b' }}><Syringe size={16} color="#0284c7" /> Sanidad</h3>
+                <button style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => { setFormVacuna({ nombre: '', fecha: '', dosis: '' }); setModalVacuna(true); }}>
+                  + Registrar
                 </button>
               </div>
-
-              {animalSeleccionado.vacunas.length === 0 ? (
-                <p style={{ fontSize: '12px', color: '#64748b', margin: 0 }}>Sin tratamientos registrados. 🛡️</p>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {animalSeleccionado.vacunas.map((v) => {
-                    const alerta = evaluarAlertaInteligente(v.vacuna, v.fecha);
-                    return (
-                      <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontWeight: 'bold', color: '#1e293b' }}>{v.vacuna} 🧪</span>
-                          <span style={{ background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold', fontSize: '11px' }}>
-                            {v.dosis}
-                          </span>
-                        </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px' }}>
-                          <span style={{ color: '#64748b' }}>📅 Aplicado: {v.fecha}</span>
-                          <span style={{ 
-                            background: alerta.colorBg, 
-                            color: alerta.colorTxt, 
-                            border: `1px solid ${alerta.borde}`, 
-                            padding: '2px 6px', 
-                            borderRadius: '4px', 
-                            fontWeight: 'bold',
-                            fontSize: '10px'
-                          }}>
-                            {alerta.texto}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              {animalSel.vacunas.length === 0 ? <p style={{ fontSize: '12px', color: '#64748b' }}>No hay vacunas.</p> : animalSel.vacunas.map(v => {
+                const alerta = evaluarAlertaInteligente(v.vacuna, v.fecha);
+                return (
+                  <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span><strong>{v.vacuna}</strong> ({v.dosis})</span>
+                      <span style={{ color: '#64748b' }}>{v.fecha}</span>
+                    </div>
+                    <div>
+                      <span style={{ background: alerta.colorBg, color: alerta.colorTxt, padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+                        {alerta.texto}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
-            {mostrarModalVacuna && (
-              <div className="no-print" style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-                <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '20px', padding: '20px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
-                    <h3 style={{ margin: 0, fontSize: '14px', color: '#1e293b' }}>💉 Registrar Tratamiento / Vacuna</h3>
-                    <button onClick={() => setMostrarModalVacuna(false)} style={{ background: 'none', border: 'none', fontSize: '16px', cursor: 'pointer', color: '#64748b' }}>✕</button>
-                  </div>
-
-                  <form onSubmit={manejarAgregarVacuna} style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '12px' }}>
-                    
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Seleccione Producto * 🧪</label>
-                      <select
-                        value={nombreVacuna}
-                        onChange={(e) => setNombreVacuna(e.target.value)}
-                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', boxSizing: 'border-box', fontSize: '12px', fontWeight: 'bold', color: '#047857' }}
-                      >
-                        <option value="">-- Seleccione de la lista --</option>
-                        <optgroup label="🛡️ Vacunas Bovinas">
-                          {LISTA_VACUNAS_ANUALES.map((vac, i) => (
-                            <option key={`v-${i}`} value={vac}>{vac}</option>
-                          ))}
-                        </optgroup>
-                        <optgroup label="🧴 Antiparasitarios y Garrapaticidas">
-                          {LISTA_CONTROL_PARASITARIO.map((par, i) => (
-                            <option key={`p-${i}`} value={par}>{par}</option>
-                          ))}
-                        </optgroup>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>O escriba otro tratamiento personalizado:</label>
-                      <input 
-                        type="text" 
-                        placeholder="Ej. Vitamina AD3E..." 
-                        value={nombreVacuna} 
-                        onChange={(e) => setNombreVacuna(e.target.value)} 
-                        style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} 
-                        autoComplete="off"
-                      />
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Fecha de Aplicación * 📅</label>
-                      <input type="date" value={fechaVacuna} onChange={(e) => setFechaVacuna(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '4px', color: '#334155' }}>Dosis * 💉</label>
-                      <input type="text" placeholder="Ej. 5 ml" value={dosisVacuna} onChange={(e) => setDosisVacuna(e.target.value)} required style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', boxSizing: 'border-box' }} />
-                    </div>
-
-                    <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                      <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setMostrarModalVacuna(false)}>Cancelar</button>
-                      <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar 💾</button>
-                    </div>
-                  </form>
-                </div>
-              </div>
-            )}
-
+            {/* SECCIÓN ALIMENTACIÓN */}
             <div className="card-box">
-              <h3 style={{ fontSize: '12px', textTransform: 'uppercase', color: '#047857', margin: '0 0 8px 0', fontWeight: 'bold' }}>
-                ⚖️ Historial de Pesos
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                {animalSeleccionado.historialPesos.map((h, index) => (
-                  <div key={index} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px', padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
-                    <span style={{ color: '#64748b' }}>📅 {h.fecha}</span>
-                    <span style={{ background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '6px', fontWeight: 'bold' }}>
-                      {h.peso} kg
-                    </span>
-                  </div>
-                ))}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <h3 style={{ fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: '#1e293b' }}><Utensils size={16} color="#d97706" /> Alimentación</h3>
+                <button style={{ background: '#fef3c7', color: '#b45309', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => { setFormAlimento({ tipo: '', cantidad: '', fecha: new Date().toISOString().split('T')[0] }); setModalAlimento(true); }}>
+                  + Registrar
+                </button>
               </div>
+              {(!animalSel.alimentacion || animalSel.alimentacion.length === 0) ? <p style={{ fontSize: '12px', color: '#64748b' }}>No hay registros.</p> : animalSel.alimentacion.map(al => (
+                <div key={al.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <span><strong>{al.tipo}</strong> - {al.cantidad}</span>
+                  <span style={{ color: '#64748b' }}>{al.fecha}</span>
+                </div>
+              ))}
             </div>
           </>
+        )}
+
+        {/* MODALES */}
+        {modalNuevoBloque && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
+            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Crear Bloque</h3>
+              <form onSubmit={crearBloque} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input type="text" placeholder="Nombre del bloque" required value={formBloque.nombre} onChange={e => setFormBloque({...formBloque, nombre: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <select value={formBloque.raza} onChange={e => setFormBloque({...formBloque, raza: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                  {RAZAS_DISPONIBLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+                <input type="text" placeholder="Descripción breve" value={formBloque.descripcion} onChange={e => setFormBloque({...formBloque, descripcion: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalNuevoBloque(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {modalNuevoAnimal && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
+            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Nuevo Animal</h3>
+              <form onSubmit={crearAnimal} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input type="text" placeholder="Código (Ej. 105)" required value={formAnimal.codigo} onChange={e => setFormAnimal({...formAnimal, codigo: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="number" placeholder="Peso inicial (kg)" required value={formAnimal.peso} onChange={e => setFormAnimal({...formAnimal, peso: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="date" required value={formAnimal.fechaNac} onChange={e => setFormAnimal({...formAnimal, fechaNac: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="text" placeholder="Notas (opcional)" value={formAnimal.notas} onChange={e => setFormAnimal({...formAnimal, notas: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalNuevoAnimal(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {modalActualizar && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
+            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Actualizar Ficha</h3>
+              <form onSubmit={actualizarAnimal} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Nuevo Peso (kg)</label>
+                <input type="number" required value={formPeso.peso} onChange={e => setFormPeso({...formPeso, peso: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Estado</label>
+                <select value={formPeso.estado} onChange={e => setFormPeso({...formPeso, estado: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                  <option value="Saludable">Saludable</option>
+                  <option value="En Tratamiento">En Tratamiento</option>
+                  <option value="Gestante">Gestante</option>
+                </select>
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalActualizar(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {modalVacuna && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
+            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Registrar Vacuna</h3>
+              <form onSubmit={agregarVacuna} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <select required value={formVacuna.nombre} onChange={e => setFormVacuna({...formVacuna, nombre: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                  <option value="">Seleccione vacuna...</option>
+                  {LISTA_VACUNAS_ANUALES.map(v => <option key={v} value={v}>{v}</option>)}
+                </select>
+                <input type="date" required value={formVacuna.fecha} onChange={e => setFormVacuna({...formVacuna, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="text" placeholder="Dosis (Ej. 2ml)" required value={formVacuna.dosis} onChange={e => setFormVacuna({...formVacuna, dosis: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalVacuna(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {modalAlimento && (
+          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
+            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
+              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Registrar Alimentación</h3>
+              <form onSubmit={agregarAlimento} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <input type="text" placeholder="Tipo (Ej. Pasto, Concentrado)" required value={formAlimento.tipo} onChange={e => setFormAlimento({...formAlimento, tipo: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="text" placeholder="Cantidad (Ej. 15 kg)" required value={formAlimento.cantidad} onChange={e => setFormAlimento({...formAlimento, cantidad: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <input type="date" required value={formAlimento.fecha} onChange={e => setFormAlimento({...formAlimento, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
+                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalAlimento(false)}>Cancelar</button>
+                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
         )}
 
       </main>
-
-      <footer className="no-print" style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: '#64748b', background: '#ffffff', borderTop: '1px solid #e2e8f0' }}>
-        Ganado Fácil Web • Versión Esmeralda Estructurada 🌾🐂
+      
+      <footer style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: '#64748b', borderTop: '1px solid #e2e8f0' }}>
+        Ganado Fácil v2.0 • Sistema de Gestión
       </footer>
-
-      <style>{`
-        @media print {
-          .no-print {
-            display: none !important;
-          }
-          body {
-            background: white !important;
-            color: #000 !important;
-          }
-          .app-container {
-            box-shadow: none !important;
-            padding: 0 !important;
-            max-width: 100% !important;
-          }
-          .card-box {
-            border: 1px solid #cbd5e1 !important;
-            break-inside: avoid;
-            margin-bottom: 12px !important;
-            box-shadow: none !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }
