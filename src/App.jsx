@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Beef, Activity, Syringe, Scale, Search, 
-  Plus, ArrowLeft, Edit, Trash2, Utensils, ChevronRight 
+  Plus, ArrowLeft, Edit, Trash2, Utensils, ChevronRight, BookOpen
 } from 'lucide-react';
 
 const INITIAL_DATA = {
   bloques: [
-    { id: 101, nombre: 'Lote El Pastizal', raza: 'Brahman', descripcion: 'Resistentes al clima cálido.', color: '#059669' },
-    { id: 102, nombre: 'Lote La Lechera', raza: 'Gyr', descripcion: 'Alta producción lechera.', color: '#0284c7' }
+    { id: 101, nombre: 'Lote El Pastizal', raza: 'Brahman', descripcion: 'Resistentes al clima cálido.' },
+    { id: 102, nombre: 'Lote La Lechera', raza: 'Gyr', descripcion: 'Alta producción lechera.' }
   ],
   animales: [
     {
@@ -18,24 +18,16 @@ const INITIAL_DATA = {
       pesoActual: 450,
       estado: 'Saludable',
       notas: 'Animal de buena genética.',
-      historialPesos: [
-        { fecha: '2023-01-10', peso: 280 },
-        { fecha: '2023-08-20', peso: 370 },
-        { fecha: '2024-02-15', peso: 450 }
-      ],
-      vacunas: [
-        { id: 1, vacuna: 'Rabia bovina', fecha: '2025-01-10', dosis: '2 ml' },
-        { id: 2, vacuna: 'Ivermectina', fecha: '2025-10-01', dosis: '10 ml' }
-      ],
-      alimentacion: [
-        { id: 1, tipo: 'Pasto Brachiaria', cantidad: '15 kg', fecha: '2024-03-01' }
-      ]
+      historialPesos: [{ fecha: '2024-02-15', peso: 450 }],
+      vacunas: [{ id: 1, vacuna: 'Rabia bovina', fecha: '2025-01-10', dosis: '2 ml' }],
+      alimentacion: [{ id: 1, tipo: 'Pasto Brachiaria', cantidad: '15 kg', fecha: '2024-03-01' }]
     }
   ]
 };
 
 const RAZAS_DISPONIBLES = ['Brahman', 'Nelore', 'Gyr', 'Brangus', 'Angus', 'Limousin', 'Senepol'];
 
+// Lista completa de medicamentos para la Guía Sanitaria y el formulario
 const VADEMECUM_MEDICAMENTOS = [
   // Vacunas Bovinas (15)
   { nombre: 'Brucelosis Cepa 19', tipo: 'Vacuna Anual', desc: 'Previene la brucelosis bovina en hembras jóvenes, protegiendo contra abortos y problemas de fertilidad.' },
@@ -83,10 +75,9 @@ const calcularEdad = (fechaNac) => {
   if (hoy.getDate() < nac.getDate()) meses--;
   const años = Math.floor(meses / 12);
   const mesesRestantes = meses % 12;
-  return `${años > 0 ? `${años} año(s) ` : ''}${mesesRestantes} mes(es)`;
+  return `${años > 0 ? `${años} a ` : ''}${mesesRestantes} m`;
 };
 
-// Función de Alerta Inteligente (Recuperada de tu código original)
 const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
   const hoy = new Date();
   const fechaApp = new Date(fechaAplicacion);
@@ -96,24 +87,15 @@ const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
   const esParasito = LISTA_CONTROL_PARASITARIO.some(p => p.toLowerCase() === nombreProducto.toLowerCase());
 
   if (esAnual) {
-    if (diferenciaDias > 330) {
-      return { texto: `⚠️ Refuerzo Vencido (${diferenciaDias} d)`, colorBg: '#fef2f2', colorTxt: '#dc2626' };
-    } else if (diferenciaDias > 270) {
-      return { texto: `⚡ Próximo a vencer (${diferenciaDias} d)`, colorBg: '#fef3c7', colorTxt: '#d97706' };
-    } else {
-      return { texto: `✅ Al día (${diferenciaDias} d)`, colorBg: '#ecfdf5', colorTxt: '#059669' };
-    }
+    if (diferenciaDias > 330) return { texto: `⚠️ Vencido (${diferenciaDias} d)`, colorBg: '#fef2f2', colorTxt: '#dc2626' };
+    if (diferenciaDias > 270) return { texto: `⚡ Próximo (${diferenciaDias} d)`, colorBg: '#fef3c7', colorTxt: '#d97706' };
+    return { texto: `✅ Al día (${diferenciaDias} d)`, colorBg: '#ecfdf5', colorTxt: '#059669' };
   } else if (esParasito) {
-    if (diferenciaDias > 120) {
-      return { texto: `⚠️ Baño/Dosis Necesaria (${diferenciaDias} d)`, colorBg: '#fef2f2', colorTxt: '#dc2626' };
-    } else if (diferenciaDias > 90) {
-      return { texto: `⚡ Control próximo (${diferenciaDias} d)`, colorBg: '#fef3c7', colorTxt: '#d97706' };
-    } else {
-      return { texto: `✅ Protección activa (${diferenciaDias} d)`, colorBg: '#ecfdf5', colorTxt: '#059669' };
-    }
-  } else {
-    return { texto: `🛡️ Tratamiento único (${diferenciaDias} d)`, colorBg: '#eff6ff', colorTxt: '#1d4ed8' };
+    if (diferenciaDias > 120) return { texto: `⚠️ Baño requerido (${diferenciaDias} d)`, colorBg: '#fef2f2', colorTxt: '#dc2626' };
+    if (diferenciaDias > 90) return { texto: `⚡ Próximo (${diferenciaDias} d)`, colorBg: '#fef3c7', colorTxt: '#d97706' };
+    return { texto: `✅ Protegido (${diferenciaDias} d)`, colorBg: '#ecfdf5', colorTxt: '#059669' };
   }
+  return { texto: `🛡️ Único (${diferenciaDias} d)`, colorBg: '#eff6ff', colorTxt: '#1d4ed8' };
 };
 
 export default function App() {
@@ -127,16 +109,17 @@ export default function App() {
   const [animalSelId, setAnimalSelId] = useState(null);
   const [busqueda, setBusqueda] = useState('');
 
-  // Modales
   const [modalNuevoBloque, setModalNuevoBloque] = useState(false);
+  const [modalEditarBloque, setModalEditarBloque] = useState(false);
   const [modalNuevoAnimal, setModalNuevoAnimal] = useState(false);
-  const [modalActualizar, setModalActualizar] = useState(false);
+  const [modalEditarAnimal, setModalEditarAnimal] = useState(false);
+  const [modalActualizarPeso, setModalActualizarPeso] = useState(false);
   const [modalVacuna, setModalVacuna] = useState(false);
   const [modalAlimento, setModalAlimento] = useState(false);
 
-  // Formularios
   const [formBloque, setFormBloque] = useState({ nombre: '', raza: 'Brahman', descripcion: '' });
   const [formAnimal, setFormAnimal] = useState({ codigo: '', peso: '', fechaNac: '', notas: '', estado: 'Saludable' });
+  const [formEditarAnimal, setFormEditarAnimal] = useState({ codigo: '', fechaNac: '', notas: '', estado: 'Saludable' });
   const [formPeso, setFormPeso] = useState({ peso: '', estado: '' });
   const [formVacuna, setFormVacuna] = useState({ nombre: '', fecha: '', dosis: '' });
   const [formAlimento, setFormAlimento] = useState({ tipo: '', cantidad: '', fecha: '' });
@@ -147,18 +130,26 @@ export default function App() {
 
   const animalSel = datos.animales.find(a => a.id === animalSelId);
 
-  // --- ACCIONES ---
   const crearBloque = (e) => {
     e.preventDefault();
-    const nuevo = { id: Date.now(), ...formBloque };
-    setDatos(prev => ({ ...prev, bloques: [...prev.bloques, nuevo] }));
+    setDatos(prev => ({ ...prev, bloques: [...prev.bloques, { id: Date.now(), ...formBloque }] }));
     setModalNuevoBloque(false);
+  };
+
+  const guardarEdicionBloque = (e) => {
+    e.preventDefault();
+    setDatos(prev => ({
+      ...prev,
+      bloques: prev.bloques.map(b => b.id === bloqueSel.id ? { ...b, ...formBloque } : b)
+    }));
+    setBloqueSel({ ...bloqueSel, ...formBloque });
+    setModalEditarBloque(false);
   };
 
   const crearAnimal = (e) => {
     e.preventDefault();
     if(datos.animales.some(a => a.bloqueId === bloqueSel.id && a.codigo === formAnimal.codigo)) {
-      return alert("El código ya existe en este bloque.");
+      return alert("El código ya existe.");
     }
     const nuevo = {
       id: 'int-' + Date.now(),
@@ -176,7 +167,22 @@ export default function App() {
     setModalNuevoAnimal(false);
   };
 
-  const actualizarAnimal = (e) => {
+  const guardarEdicionAnimal = (e) => {
+    e.preventDefault();
+    setDatos(prev => ({
+      ...prev,
+      animales: prev.animales.map(a => a.id === animalSelId ? { 
+        ...a, 
+        codigo: formEditarAnimal.codigo,
+        fechaNacimiento: formEditarAnimal.fechaNac,
+        notas: formEditarAnimal.notas,
+        estado: formEditarAnimal.estado
+      } : a)
+    }));
+    setModalEditarAnimal(false);
+  };
+
+  const actualizarPeso = (e) => {
     e.preventDefault();
     const fechaHoy = new Date().toISOString().split('T')[0];
     setDatos(prev => ({
@@ -184,35 +190,28 @@ export default function App() {
       animales: prev.animales.map(a => {
         if (a.id === animalSelId) {
           const nuevoHistorial = formPeso.peso ? [...a.historialPesos, { fecha: fechaHoy, peso: Number(formPeso.peso) }] : a.historialPesos;
-          return {
-            ...a,
-            pesoActual: formPeso.peso ? Number(formPeso.peso) : a.pesoActual,
-            estado: formPeso.estado || a.estado,
-            historialPesos: nuevoHistorial
-          };
+          return { ...a, pesoActual: formPeso.peso ? Number(formPeso.peso) : a.pesoActual, estado: formPeso.estado || a.estado, historialPesos: nuevoHistorial };
         }
         return a;
       })
     }));
-    setModalActualizar(false);
+    setModalActualizarPeso(false);
   };
 
   const agregarVacuna = (e) => {
     e.preventDefault();
-    const nueva = { id: Date.now(), ...formVacuna };
     setDatos(prev => ({
       ...prev,
-      animales: prev.animales.map(a => a.id === animalSelId ? { ...a, vacunas: [...a.vacunas, nueva] } : a)
+      animales: prev.animales.map(a => a.id === animalSelId ? { ...a, vacunas: [...a.vacunas, { id: Date.now(), ...formVacuna }] } : a)
     }));
     setModalVacuna(false);
   };
 
   const agregarAlimento = (e) => {
     e.preventDefault();
-    const nuevo = { id: Date.now(), ...formAlimento };
     setDatos(prev => ({
       ...prev,
-      animales: prev.animales.map(a => a.id === animalSelId ? { ...a, alimentacion: [...(a.alimentacion || []), nuevo] } : a)
+      animales: prev.animales.map(a => a.id === animalSelId ? { ...a, alimentacion: [...(a.alimentacion || []), { id: Date.now(), ...formAlimento }] } : a)
     }));
     setModalAlimento(false);
   };
@@ -224,140 +223,195 @@ export default function App() {
     }
   };
 
+  const inputClass = "w-full p-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 text-sm";
+  const modalClass = "fixed inset-0 bg-black/50 flex justify-center items-center z-50 p-4 backdrop-blur-sm";
+  const modalBoxClass = "bg-white w-full max-w-sm rounded-2xl p-5 shadow-xl";
+  const btnPrimary = "bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors w-full text-sm";
+  const btnSecondary = "bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold py-2.5 px-4 rounded-xl flex items-center justify-center gap-2 transition-colors w-full text-sm";
+
   return (
-    <div className="app-container">
-      {/* HEADER */}
-      <header className="app-header">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+    <div className="max-w-md mx-auto min-h-screen bg-[#f0fdf4] flex flex-col font-sans shadow-2xl">
+      
+      <header className="bg-emerald-700 text-white p-4 flex justify-between items-center border-b-2 border-emerald-800 sticky top-0 z-10">
+        <div className="flex items-center gap-3">
           <Beef size={28} />
           <div>
-            <h1 style={{ margin: 0, fontSize: '18px', fontWeight: 'bold' }}>Ganado Fácil</h1>
-            <p style={{ margin: 0, fontSize: '11px', opacity: 0.8 }}>Control Pecuario</p>
+            <h1 className="m-0 text-lg font-bold leading-tight">Ganado Fácil</h1>
+            <p className="m-0 text-[11px] opacity-80">Control Pecuario</p>
           </div>
         </div>
         {vista !== 'INICIO' && (
-          <button className="btn-secondary" style={{ width: 'auto', padding: '6px 12px', background: 'rgba(255,255,255,0.2)', color: 'white' }} onClick={() => {
+          <button className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors" onClick={() => {
             if (vista === 'FICHA') setVista('ANIMALES');
             else setVista('INICIO');
           }}>
-            <ArrowLeft size={16} />
+            <ArrowLeft size={18} />
           </button>
         )}
       </header>
 
-      <main style={{ padding: '16px', flex: 1, display: 'flex', flexDirection: 'column', gap: '12px' }}>
+      <main className="p-4 flex-1 flex flex-col gap-3 overflow-y-auto">
         
-        {/* VISTA INICIO */}
         {vista === 'INICIO' && (
           <>
-            <div className="card-box" style={{ background: 'linear-gradient(135deg, #059669, #047857)', color: 'white' }}>
-              <h2 style={{ fontSize: '18px', margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Activity /> Mis Bloques
-              </h2>
-              <p style={{ fontSize: '12px', marginBottom: '16px', opacity: 0.9 }}>Gestione sus lotes de ganado</p>
-              <button className="btn-primary" style={{ background: 'white', color: '#047857' }} onClick={() => setModalNuevoBloque(true)}>
-                <Plus size={16} /> Crear Nuevo Bloque
-              </button>
+            <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-2xl p-5 text-white shadow-md">
+              <h2 className="text-lg font-bold flex items-center gap-2 mb-1"><Activity /> Mis Bloques</h2>
+              <p className="text-xs opacity-90 mb-4">Gestione sus lotes de ganado</p>
+              <div className="flex gap-2">
+                <button className="bg-white text-emerald-800 hover:bg-emerald-50 flex-1 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors" onClick={() => setModalNuevoBloque(true)}>
+                  <Plus size={18} /> Nuevo Bloque
+                </button>
+                <button className="bg-emerald-700 border border-emerald-500 hover:bg-emerald-600 text-white flex-1 py-2.5 rounded-xl font-bold flex items-center justify-center gap-2 transition-colors" onClick={() => setVista('GUIA')}>
+                  <BookOpen size={18} /> Guía
+                </button>
+              </div>
             </div>
 
             {datos.bloques.map(b => {
               const count = datos.animales.filter(a => a.bloqueId === b.id).length;
               return (
-                <div key={b.id} className="card-box" style={{ cursor: 'pointer', borderLeft: `4px solid ${b.color || '#059669'}` }} onClick={() => { setBloqueSel(b); setVista('ANIMALES'); }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <h3 style={{ margin: 0, fontSize: '15px', color: '#1e293b' }}>{b.nombre}</h3>
-                    <span style={{ fontSize: '11px', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '12px', fontWeight: 'bold' }}>
+                <div key={b.id} className="bg-white border border-emerald-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow relative">
+                  <div className="flex justify-between items-center mb-1 cursor-pointer" onClick={() => { setBloqueSel(b); setVista('ANIMALES'); }}>
+                    <h3 className="m-0 text-sm font-bold text-slate-800">{b.nombre}</h3>
+                    <span className="text-[11px] bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full font-bold">
                       {count} Animales
                     </span>
                   </div>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#64748b' }}>Raza: {b.raza} • {b.descripcion}</p>
+                  <p className="m-0 text-xs text-slate-500 cursor-pointer" onClick={() => { setBloqueSel(b); setVista('ANIMALES'); }}>Raza: {b.raza} • {b.descripcion}</p>
+                  
+                  <button 
+                    className="absolute top-4 right-12 text-slate-400 hover:text-emerald-600 transition-colors"
+                    onClick={() => { setBloqueSel(b); setFormBloque({ nombre: b.nombre, raza: b.raza, descripcion: b.descripcion }); setModalEditarBloque(true); }}
+                    title="Editar Bloque"
+                  >
+                    <Edit size={16} />
+                  </button>
                 </div>
               );
             })}
           </>
         )}
 
-        {/* VISTA LISTA DE ANIMALES */}
+        {vista === 'GUIA' && (
+          <>
+            <div className="bg-emerald-100 border border-emerald-300 rounded-2xl p-4 text-center shadow-sm mb-2">
+              <h2 className="text-sm font-bold text-emerald-800 m-0 flex items-center justify-center gap-2"><BookOpen size={18}/> Guía Sanitaria</h2>
+              <p className="text-xs text-emerald-700 m-0 mt-1">Manual de consulta de vacunas y tratamientos.</p>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <h3 className="text-xs font-bold text-blue-800 border-b-2 border-blue-200 pb-2 mb-3 flex items-center gap-2"><Syringe size={14}/> Vacunas Bovinas</h3>
+              <div className="flex flex-col gap-3">
+                {VADEMECUM_MEDICAMENTOS.filter(m => m.tipo === 'Vacuna Anual').map((med, idx) => (
+                  <div key={idx} className="border-b border-slate-100 pb-2 last:border-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-bold text-sm text-slate-800">{med.nombre}</span>
+                      <span className="text-[10px] font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md whitespace-nowrap ml-2">Anual</span>
+                    </div>
+                    <p className="text-xs text-slate-500 m-0 leading-relaxed">{med.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <h3 className="text-xs font-bold text-amber-800 border-b-2 border-amber-200 pb-2 mb-3 flex items-center gap-2"><Activity size={14}/> Antiparasitarios y Baños</h3>
+              <div className="flex flex-col gap-3">
+                {VADEMECUM_MEDICAMENTOS.filter(m => m.tipo.includes('Antiparasitario')).map((med, idx) => (
+                  <div key={idx} className="border-b border-slate-100 pb-2 last:border-0">
+                    <div className="flex justify-between items-start mb-1">
+                      <span className="font-bold text-sm text-slate-800">{med.nombre}</span>
+                      <span className="text-[10px] font-bold bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md whitespace-nowrap ml-2">Control</span>
+                    </div>
+                    <p className="text-xs text-slate-500 m-0 leading-relaxed">{med.desc}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </>
+        )}
+
         {vista === 'ANIMALES' && bloqueSel && (
           <>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+            <div className="flex justify-between items-center mb-1">
               <div>
-                <h2 style={{ margin: 0, fontSize: '16px', color: '#1e293b' }}>{bloqueSel.nombre}</h2>
-                <p style={{ margin: 0, fontSize: '11px', color: '#64748b' }}>Raza: {bloqueSel.raza}</p>
+                <h2 className="m-0 text-base font-bold text-slate-800">{bloqueSel.nombre}</h2>
+                <p className="m-0 text-xs text-slate-500">Raza: {bloqueSel.raza}</p>
               </div>
-              <button className="btn-primary" style={{ width: 'auto', padding: '6px 12px' }} onClick={() => { setFormAnimal({ codigo: '', peso: '', fechaNac: '', notas: '', estado: 'Saludable' }); setModalNuevoAnimal(true); }}>
-                <Plus size={16} /> Nuevo
+              <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors" onClick={() => { setFormAnimal({ codigo: '', peso: '', fechaNac: '', notas: '', estado: 'Saludable' }); setModalNuevoAnimal(true); }}>
+                <Plus size={14} /> Nuevo
               </button>
             </div>
 
-            <div className="card-box" style={{ padding: '8px 12px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '6px 10px', borderRadius: '8px' }}>
-                <Search size={16} color="#64748b" />
-                <input type="text" placeholder="Buscar por código..." value={busqueda} onChange={e => setBusqueda(e.target.value)} style={{ border: 'none', background: 'transparent', outline: 'none', width: '100%', fontSize: '13px' }} />
-              </div>
+            <div className="bg-white border border-slate-200 rounded-xl p-2 flex items-center gap-2 shadow-sm">
+              <Search size={16} className="text-slate-400" />
+              <input type="text" placeholder="Buscar por código..." value={busqueda} onChange={e => setBusqueda(e.target.value)} className="border-none bg-transparent outline-none w-full text-sm text-slate-700" />
             </div>
 
             {datos.animales.filter(a => a.bloqueId === bloqueSel.id && a.codigo.includes(busqueda)).map(a => (
-              <div key={a.id} className="card-box" style={{ cursor: 'pointer', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }} onClick={() => { setAnimalSelId(a.id); setVista('FICHA'); }}>
+              <div key={a.id} className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm cursor-pointer flex justify-between items-center hover:border-emerald-300 transition-colors" onClick={() => { setAnimalSelId(a.id); setVista('FICHA'); }}>
                 <div>
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <span style={{ fontSize: '11px', fontWeight: 'bold', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '6px' }}>#{a.codigo}</span>
-                    <span style={{ fontSize: '11px', fontWeight: 'bold', background: a.estado === 'Saludable' ? '#d1fae5' : '#fef3c7', color: a.estado === 'Saludable' ? '#065f46' : '#92400e', padding: '2px 8px', borderRadius: '6px' }}>{a.estado}</span>
+                  <div className="flex gap-2 items-center mb-1.5">
+                    <span className="text-xs font-bold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-md">#{a.codigo}</span>
+                    <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${a.estado === 'Saludable' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{a.estado}</span>
                   </div>
-                  <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#475569', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <p className="m-0 text-xs text-slate-600 flex items-center gap-1">
                     <Scale size={14} /> {a.pesoActual} kg • {calcularEdad(a.fechaNacimiento)}
                   </p>
                 </div>
-                <ChevronRight size={18} color="#94a3b8" />
+                <ChevronRight size={18} className="text-slate-300" />
               </div>
             ))}
           </>
         )}
 
-        {/* VISTA FICHA DEL ANIMAL */}
         {vista === 'FICHA' && animalSel && (
           <>
-            <div className="card-box" style={{ borderTop: '4px solid #059669' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px', marginBottom: '12px' }}>
-                <h2 style={{ margin: 0, fontSize: '16px', color: '#1e293b' }}>Ficha #{animalSel.codigo}</h2>
-                <span style={{ fontSize: '12px', fontWeight: 'bold', background: '#d1fae5', color: '#065f46', padding: '2px 8px', borderRadius: '6px' }}>{animalSel.estado}</span>
+            <div className="bg-white border-t-4 border-emerald-600 border-x border-b border-slate-200 rounded-2xl p-4 shadow-sm relative">
+              <div className="flex justify-between items-center border-b border-slate-100 pb-2 mb-3">
+                <h2 className="m-0 text-base font-bold text-slate-800">Ficha #{animalSel.codigo}</h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md">{animalSel.estado}</span>
+                  <button className="text-slate-400 hover:text-blue-600 transition-colors" onClick={() => { setFormEditarAnimal({ codigo: animalSel.codigo, fechaNac: animalSel.fechaNacimiento, notas: animalSel.notas, estado: animalSel.estado }); setModalEditarAnimal(true); }} title="Editar Datos Generales">
+                    <Edit size={16} />
+                  </button>
+                </div>
               </div>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '12px', marginBottom: '16px' }}>
-                <div><span style={{ color: '#64748b' }}>Peso Actual:</span><br/><strong style={{ fontSize: '16px', color: '#047857' }}>{animalSel.pesoActual} kg</strong></div>
-                <div><span style={{ color: '#64748b' }}>Edad:</span><br/><strong>{calcularEdad(animalSel.fechaNacimiento)}</strong></div>
-                <div><span style={{ color: '#64748b' }}>Nacimiento:</span><br/><strong>{animalSel.fechaNacimiento || 'No reg.'}</strong></div>
-                <div><span style={{ color: '#64748b' }}>Notas:</span><br/><span style={{ fontStyle: 'italic' }}>{animalSel.notas || 'Sin notas'}</span></div>
+              <div className="grid grid-cols-2 gap-3 text-xs mb-4">
+                <div><span className="text-slate-500 block mb-0.5">Peso Actual:</span><strong className="text-base text-emerald-700">{animalSel.pesoActual} kg</strong></div>
+                <div><span className="text-slate-500 block mb-0.5">Edad:</span><strong className="text-slate-800">{calcularEdad(animalSel.fechaNacimiento)}</strong></div>
+                <div><span className="text-slate-500 block mb-0.5">Nacimiento:</span><strong className="text-slate-800">{animalSel.fechaNacimiento || 'No reg.'}</strong></div>
+                <div><span className="text-slate-500 block mb-0.5">Notas:</span><span className="italic text-slate-600">{animalSel.notas || 'Sin notas'}</span></div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <button className="btn-primary" onClick={() => { setFormPeso({ peso: animalSel.pesoActual, estado: animalSel.estado }); setModalActualizar(true); }}>
-                  <Edit size={14} /> Peso / Estado
+              <div className="grid grid-cols-2 gap-2">
+                <button className={btnPrimary} onClick={() => { setFormPeso({ peso: animalSel.pesoActual, estado: animalSel.estado }); setModalActualizarPeso(true); }}>
+                  <Scale size={14} /> Peso / Estado
                 </button>
-                <button className="btn-secondary" style={{ background: '#fee2e2', color: '#dc2626', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '4px' }} onClick={() => eliminarAnimal(animalSel.id)}>
+                <button className={`${btnSecondary} !bg-red-50 !text-red-600 hover:!bg-red-100`} onClick={() => eliminarAnimal(animalSel.id)}>
                   <Trash2 size={14} /> Eliminar
                 </button>
               </div>
             </div>
 
-            {/* SECCIÓN VACUNAS CON ALERTA INTELIGENTE */}
-            <div className="card-box">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: '#1e293b' }}><Syringe size={16} color="#0284c7" /> Sanidad</h3>
-                <button style={{ background: '#e0f2fe', color: '#0369a1', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => { setFormVacuna({ nombre: '', fecha: '', dosis: '' }); setModalVacuna(true); }}>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-bold m-0 flex items-center gap-1.5 text-slate-800"><Syringe size={16} className="text-blue-600" /> Sanidad</h3>
+                <button className="bg-blue-50 text-blue-700 hover:bg-blue-100 px-2.5 py-1 rounded-md text-xs font-bold transition-colors" onClick={() => { setFormVacuna({ nombre: '', fecha: '', dosis: '' }); setModalVacuna(true); }}>
                   + Registrar
                 </button>
               </div>
-              {animalSel.vacunas.length === 0 ? <p style={{ fontSize: '12px', color: '#64748b' }}>No hay vacunas.</p> : animalSel.vacunas.map(v => {
+              {animalSel.vacunas.length === 0 ? <p className="text-xs text-slate-500 m-0">No hay vacunas.</p> : animalSel.vacunas.map(v => {
                 const alerta = evaluarAlertaInteligente(v.vacuna, v.fecha);
                 return (
-                  <div key={v.id} style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '12px', padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <div key={v.id} className="flex flex-col gap-1 text-xs py-2 border-b border-slate-100 last:border-0">
+                    <div className="flex justify-between items-center">
                       <span><strong>{v.vacuna}</strong> ({v.dosis})</span>
-                      <span style={{ color: '#64748b' }}>{v.fecha}</span>
+                      <span className="text-slate-500">{v.fecha}</span>
                     </div>
                     <div>
-                      <span style={{ background: alerta.colorBg, color: alerta.colorTxt, padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 'bold' }}>
+                      <span style={{ backgroundColor: alerta.colorBg, color: alerta.colorTxt }} className="px-2 py-0.5 rounded text-[10px] font-bold">
                         {alerta.texto}
                       </span>
                     </div>
@@ -366,18 +420,17 @@ export default function App() {
               })}
             </div>
 
-            {/* SECCIÓN ALIMENTACIÓN */}
-            <div className="card-box">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                <h3 style={{ fontSize: '13px', margin: 0, display: 'flex', alignItems: 'center', gap: '6px', color: '#1e293b' }}><Utensils size={16} color="#d97706" /> Alimentación</h3>
-                <button style={{ background: '#fef3c7', color: '#b45309', border: 'none', padding: '4px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 'bold', cursor: 'pointer' }} onClick={() => { setFormAlimento({ tipo: '', cantidad: '', fecha: new Date().toISOString().split('T')[0] }); setModalAlimento(true); }}>
+            <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-sm font-bold m-0 flex items-center gap-1.5 text-slate-800"><Utensils size={16} className="text-amber-600" /> Alimentación</h3>
+                <button className="bg-amber-50 text-amber-700 hover:bg-amber-100 px-2.5 py-1 rounded-md text-xs font-bold transition-colors" onClick={() => { setFormAlimento({ tipo: '', cantidad: '', fecha: new Date().toISOString().split('T')[0] }); setModalAlimento(true); }}>
                   + Registrar
                 </button>
               </div>
-              {(!animalSel.alimentacion || animalSel.alimentacion.length === 0) ? <p style={{ fontSize: '12px', color: '#64748b' }}>No hay registros.</p> : animalSel.alimentacion.map(al => (
-                <div key={al.id} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', padding: '6px 0', borderBottom: '1px solid #f1f5f9' }}>
+              {(!animalSel.alimentacion || animalSel.alimentacion.length === 0) ? <p className="text-xs text-slate-500 m-0">No hay registros.</p> : animalSel.alimentacion.map(al => (
+                <div key={al.id} className="flex justify-between text-xs py-2 border-b border-slate-100 last:border-0">
                   <span><strong>{al.tipo}</strong> - {al.cantidad}</span>
-                  <span style={{ color: '#64748b' }}>{al.fecha}</span>
+                  <span className="text-slate-500">{al.fecha}</span>
                 </div>
               ))}
             </div>
@@ -386,18 +439,37 @@ export default function App() {
 
         {/* MODALES */}
         {modalNuevoBloque && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Crear Bloque</h3>
-              <form onSubmit={crearBloque} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input type="text" placeholder="Nombre del bloque" required value={formBloque.nombre} onChange={e => setFormBloque({...formBloque, nombre: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <select value={formBloque.raza} onChange={e => setFormBloque({...formBloque, raza: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+          <div className={modalClass}>
+            <div className={modalBoxClass}>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Crear Bloque</h3>
+              <form onSubmit={crearBloque} className="flex flex-col gap-3">
+                <input type="text" placeholder="Nombre del bloque" required value={formBloque.nombre} onChange={e => setFormBloque({...formBloque, nombre: e.target.value})} className={inputClass} />
+                <select value={formBloque.raza} onChange={e => setFormBloque({...formBloque, raza: e.target.value})} className={inputClass}>
                   {RAZAS_DISPONIBLES.map(r => <option key={r} value={r}>{r}</option>)}
                 </select>
-                <input type="text" placeholder="Descripción breve" value={formBloque.descripcion} onChange={e => setFormBloque({...formBloque, descripcion: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalNuevoBloque(false)}>Cancelar</button>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                <input type="text" placeholder="Descripción breve" value={formBloque.descripcion} onChange={e => setFormBloque({...formBloque, descripcion: e.target.value})} className={inputClass} />
+                <div className="flex gap-2 mt-2">
+                  <button type="button" className={btnSecondary} onClick={() => setModalNuevoBloque(false)}>Cancelar</button>
+                  <button type="submit" className={btnPrimary}>Guardar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {modalEditarBloque && (
+          <div className={modalClass}>
+            <div className={modalBoxClass}>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Editar Bloque</h3>
+              <form onSubmit={guardarEdicionBloque} className="flex flex-col gap-3">
+                <input type="text" placeholder="Nombre del bloque" required value={formBloque.nombre} onChange={e => setFormBloque({...formBloque, nombre: e.target.value})} className={inputClass} />
+                <select value={formBloque.raza} onChange={e => setFormBloque({...formBloque, raza: e.target.value})} className={inputClass}>
+                  {RAZAS_DISPONIBLES.map(r => <option key={r} value={r}>{r}</option>)}
+                </select>
+                <input type="text" placeholder="Descripción breve" value={formBloque.descripcion} onChange={e => setFormBloque({...formBloque, descripcion: e.target.value})} className={inputClass} />
+                <div className="flex gap-2 mt-2">
+                  <button type="button" className={btnSecondary} onClick={() => setModalEditarBloque(false)}>Cancelar</button>
+                  <button type="submit" className={btnPrimary}>Actualizar</button>
                 </div>
               </form>
             </div>
@@ -405,39 +477,65 @@ export default function App() {
         )}
 
         {modalNuevoAnimal && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Nuevo Animal</h3>
-              <form onSubmit={crearAnimal} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input type="text" placeholder="Código (Ej. 105)" required value={formAnimal.codigo} onChange={e => setFormAnimal({...formAnimal, codigo: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <input type="number" placeholder="Peso inicial (kg)" required value={formAnimal.peso} onChange={e => setFormAnimal({...formAnimal, peso: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <input type="date" required value={formAnimal.fechaNac} onChange={e => setFormAnimal({...formAnimal, fechaNac: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <input type="text" placeholder="Notas (opcional)" value={formAnimal.notas} onChange={e => setFormAnimal({...formAnimal, notas: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalNuevoAnimal(false)}>Cancelar</button>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+          <div className={modalClass}>
+            <div className={modalBoxClass}>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Nuevo Animal</h3>
+              <form onSubmit={crearAnimal} className="flex flex-col gap-3">
+                <input type="text" placeholder="Código (Ej. 105)" required value={formAnimal.codigo} onChange={e => setFormAnimal({...formAnimal, codigo: e.target.value})} className={inputClass} />
+                <input type="number" placeholder="Peso inicial (kg)" required value={formAnimal.peso} onChange={e => setFormAnimal({...formAnimal, peso: e.target.value})} className={inputClass} />
+                <input type="date" required value={formAnimal.fechaNac} onChange={e => setFormAnimal({...formAnimal, fechaNac: e.target.value})} className={inputClass} />
+                <input type="text" placeholder="Notas (opcional)" value={formAnimal.notas} onChange={e => setFormAnimal({...formAnimal, notas: e.target.value})} className={inputClass} />
+                <div className="flex gap-2 mt-2">
+                  <button type="button" className={btnSecondary} onClick={() => setModalNuevoAnimal(false)}>Cancelar</button>
+                  <button type="submit" className={btnPrimary}>Guardar</button>
                 </div>
               </form>
             </div>
           </div>
         )}
 
-        {modalActualizar && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Actualizar Ficha</h3>
-              <form onSubmit={actualizarAnimal} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Nuevo Peso (kg)</label>
-                <input type="number" required value={formPeso.peso} onChange={e => setFormPeso({...formPeso, peso: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <label style={{ fontSize: '12px', fontWeight: 'bold' }}>Estado</label>
-                <select value={formPeso.estado} onChange={e => setFormPeso({...formPeso, estado: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+        {modalEditarAnimal && (
+          <div className={modalClass}>
+            <div className={modalBoxClass}>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Editar Datos Generales</h3>
+              <form onSubmit={guardarEdicionAnimal} className="flex flex-col gap-3">
+                <label className="text-xs font-bold text-slate-700">Código</label>
+                <input type="text" required value={formEditarAnimal.codigo} onChange={e => setFormEditarAnimal({...formEditarAnimal, codigo: e.target.value})} className={inputClass} />
+                <label className="text-xs font-bold text-slate-700">Fecha de Nacimiento</label>
+                <input type="date" required value={formEditarAnimal.fechaNac} onChange={e => setFormEditarAnimal({...formEditarAnimal, fechaNac: e.target.value})} className={inputClass} />
+                <label className="text-xs font-bold text-slate-700">Notas</label>
+                <input type="text" value={formEditarAnimal.notas} onChange={e => setFormEditarAnimal({...formEditarAnimal, notas: e.target.value})} className={inputClass} />
+                <label className="text-xs font-bold text-slate-700">Estado</label>
+                <select value={formEditarAnimal.estado} onChange={e => setFormEditarAnimal({...formEditarAnimal, estado: e.target.value})} className={inputClass}>
                   <option value="Saludable">Saludable</option>
                   <option value="En Tratamiento">En Tratamiento</option>
                   <option value="Gestante">Gestante</option>
                 </select>
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalActualizar(false)}>Cancelar</button>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                <div className="flex gap-2 mt-2">
+                  <button type="button" className={btnSecondary} onClick={() => setModalEditarAnimal(false)}>Cancelar</button>
+                  <button type="submit" className={btnPrimary}>Actualizar</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {modalActualizarPeso && (
+          <div className={modalClass}>
+            <div className={modalBoxClass}>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Actualizar Peso / Estado</h3>
+              <form onSubmit={actualizarPeso} className="flex flex-col gap-3">
+                <label className="text-xs font-bold text-slate-700">Nuevo Peso (kg)</label>
+                <input type="number" required value={formPeso.peso} onChange={e => setFormPeso({...formPeso, peso: e.target.value})} className={inputClass} />
+                <label className="text-xs font-bold text-slate-700">Estado</label>
+                <select value={formPeso.estado} onChange={e => setFormPeso({...formPeso, estado: e.target.value})} className={inputClass}>
+                  <option value="Saludable">Saludable</option>
+                  <option value="En Tratamiento">En Tratamiento</option>
+                  <option value="Gestante">Gestante</option>
+                </select>
+                <div className="flex gap-2 mt-2">
+                  <button type="button" className={btnSecondary} onClick={() => setModalActualizarPeso(false)}>Cancelar</button>
+                  <button type="submit" className={btnPrimary}>Guardar</button>
                 </div>
               </form>
             </div>
@@ -445,19 +543,19 @@ export default function App() {
         )}
 
         {modalVacuna && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Registrar Vacuna</h3>
-              <form onSubmit={agregarVacuna} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <select required value={formVacuna.nombre} onChange={e => setFormVacuna({...formVacuna, nombre: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+          <div className={modalClass}>
+            <div className={modalBoxClass}>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Registrar Vacuna</h3>
+              <form onSubmit={agregarVacuna} className="flex flex-col gap-3">
+                <select required value={formVacuna.nombre} onChange={e => setFormVacuna({...formVacuna, nombre: e.target.value})} className={inputClass}>
                   <option value="">Seleccione vacuna...</option>
                   {LISTA_VACUNAS_ANUALES.map(v => <option key={v} value={v}>{v}</option>)}
                 </select>
-                <input type="date" required value={formVacuna.fecha} onChange={e => setFormVacuna({...formVacuna, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <input type="text" placeholder="Dosis (Ej. 2ml)" required value={formVacuna.dosis} onChange={e => setFormVacuna({...formVacuna, dosis: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalVacuna(false)}>Cancelar</button>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+                <input type="date" required value={formVacuna.fecha} onChange={e => setFormVacuna({...formVacuna, fecha: e.target.value})} className={inputClass} />
+                <input type="text" placeholder="Dosis (Ej. 2ml)" required value={formVacuna.dosis} onChange={e => setFormVacuna({...formVacuna, dosis: e.target.value})} className={inputClass} />
+                <div className="flex gap-2 mt-2">
+                  <button type="button" className={btnSecondary} onClick={() => setModalVacuna(false)}>Cancelar</button>
+                  <button type="submit" className={btnPrimary}>Guardar</button>
                 </div>
               </form>
             </div>
@@ -465,16 +563,16 @@ export default function App() {
         )}
 
         {modalAlimento && (
-          <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 50, padding: '16px' }}>
-            <div style={{ background: 'white', width: '100%', maxWidth: '360px', borderRadius: '16px', padding: '20px' }}>
-              <h3 style={{ margin: '0 0 16px 0', fontSize: '16px' }}>Registrar Alimentación</h3>
-              <form onSubmit={agregarAlimento} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <input type="text" placeholder="Tipo (Ej. Pasto, Concentrado)" required value={formAlimento.tipo} onChange={e => setFormAlimento({...formAlimento, tipo: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <input type="text" placeholder="Cantidad (Ej. 15 kg)" required value={formAlimento.cantidad} onChange={e => setFormAlimento({...formAlimento, cantidad: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <input type="date" required value={formAlimento.fecha} onChange={e => setFormAlimento({...formAlimento, fecha: e.target.value})} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1' }} />
-                <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
-                  <button type="button" className="btn-secondary" style={{ flex: 1 }} onClick={() => setModalAlimento(false)}>Cancelar</button>
-                  <button type="submit" className="btn-primary" style={{ flex: 1 }}>Guardar</button>
+          <div className={modalClass}>
+            <div className={modalBoxClass}>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Registrar Alimentación</h3>
+              <form onSubmit={agregarAlimento} className="flex flex-col gap-3">
+                <input type="text" placeholder="Tipo (Ej. Pasto, Concentrado)" required value={formAlimento.tipo} onChange={e => setFormAlimento({...formAlimento, tipo: e.target.value})} className={inputClass} />
+                <input type="text" placeholder="Cantidad (Ej. 15 kg)" required value={formAlimento.cantidad} onChange={e => setFormAlimento({...formAlimento, cantidad: e.target.value})} className={inputClass} />
+                <input type="date" required value={formAlimento.fecha} onChange={e => setFormAlimento({...formAlimento, fecha: e.target.value})} className={inputClass} />
+                <div className="flex gap-2 mt-2">
+                  <button type="button" className={btnSecondary} onClick={() => setModalAlimento(false)}>Cancelar</button>
+                  <button type="submit" className={btnPrimary}>Guardar</button>
                 </div>
               </form>
             </div>
@@ -483,7 +581,7 @@ export default function App() {
 
       </main>
       
-      <footer style={{ padding: '12px', textAlign: 'center', fontSize: '11px', color: '#64748b', borderTop: '1px solid #e2e8f0' }}>
+      <footer className="p-3 text-center text-[11px] text-slate-500 border-t border-slate-200 bg-white">
         Ganado Fácil v2.0 • Sistema de Gestión
       </footer>
     </div>
