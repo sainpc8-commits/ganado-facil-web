@@ -4,6 +4,7 @@ import {
   Plus, ArrowLeft, Edit, Trash2, Utensils, ChevronRight, BookOpen
 } from 'lucide-react';
 
+// Nueva estructura de datos usando edadEstimada
 const INITIAL_DATA = {
   bloques: [
     { id: 101, nombre: 'Lote El Pastizal', raza: 'Brahman', descripcion: 'Resistentes al clima cálido.' },
@@ -14,7 +15,7 @@ const INITIAL_DATA = {
       id: 'internal-001',
       codigo: '1',
       bloqueId: 101,
-      fechaNacimiento: '2022-03-15',
+      edadEstimada: '2-3 años', // <-- Nuevo campo
       pesoActual: 450,
       estado: 'Saludable',
       notas: 'Animal de buena genética.',
@@ -27,7 +28,19 @@ const INITIAL_DATA = {
 
 const RAZAS_DISPONIBLES = ['Brahman', 'Nelore', 'Gyr', 'Brangus', 'Angus', 'Limousin', 'Senepol'];
 
-// Lista completa de medicamentos para la Guía Sanitaria y el formulario
+// Opciones de edad estimada (Meses y Años)
+const OPCIONES_EDAD = [
+  '1-3 meses',
+  '4-6 meses',
+  '7-9 meses',
+  '10-12 meses',
+  '1-2 años',
+  '2-3 años',
+  '3-4 años',
+  '4-5 años',
+  'Más de 5 años'
+];
+
 const VADEMECUM_MEDICAMENTOS = [
   // Vacunas Bovinas (15)
   { nombre: 'Brucelosis Cepa 19', tipo: 'Vacuna Anual', desc: 'Previene la brucelosis bovina en hembras jóvenes, protegiendo contra abortos y problemas de fertilidad.' },
@@ -67,17 +80,6 @@ const VADEMECUM_MEDICAMENTOS = [
 const LISTA_VACUNAS_ANUALES = VADEMECUM_MEDICAMENTOS.filter(m => m.tipo === 'Vacuna Anual').map(m => m.nombre);
 const LISTA_CONTROL_PARASITARIO = VADEMECUM_MEDICAMENTOS.filter(m => m.tipo.includes('Antiparasitario')).map(m => m.nombre);
 
-const calcularEdad = (fechaNac) => {
-  if(!fechaNac) return "No registrada";
-  const nac = new Date(fechaNac);
-  const hoy = new Date();
-  let meses = (hoy.getFullYear() - nac.getFullYear()) * 12 + (hoy.getMonth() - nac.getMonth());
-  if (hoy.getDate() < nac.getDate()) meses--;
-  const años = Math.floor(meses / 12);
-  const mesesRestantes = meses % 12;
-  return `${años > 0 ? `${años} a ` : ''}${mesesRestantes} m`;
-};
-
 const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
   const hoy = new Date();
   const fechaApp = new Date(fechaAplicacion);
@@ -99,8 +101,9 @@ const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
 };
 
 export default function App() {
+  // Cambiamos a v3 para limpiar la fecha vieja en el localStorage
   const [datos, setDatos] = useState(() => {
-    const guardados = localStorage.getItem('ganado_facil_v2');
+    const guardados = localStorage.getItem('ganado_facil_v3');
     return guardados ? JSON.parse(guardados) : INITIAL_DATA;
   });
 
@@ -118,14 +121,15 @@ export default function App() {
   const [modalAlimento, setModalAlimento] = useState(false);
 
   const [formBloque, setFormBloque] = useState({ nombre: '', raza: 'Brahman', descripcion: '' });
-  const [formAnimal, setFormAnimal] = useState({ codigo: '', peso: '', fechaNac: '', notas: '', estado: 'Saludable' });
-  const [formEditarAnimal, setFormEditarAnimal] = useState({ codigo: '', fechaNac: '', notas: '', estado: 'Saludable' });
+  // Cambiamos fechaNac por edadEstimada
+  const [formAnimal, setFormAnimal] = useState({ codigo: '', peso: '', edadEstimada: '1-2 años', notas: '', estado: 'Saludable' });
+  const [formEditarAnimal, setFormEditarAnimal] = useState({ codigo: '', edadEstimada: '', notas: '', estado: 'Saludable' });
   const [formPeso, setFormPeso] = useState({ peso: '', estado: '' });
   const [formVacuna, setFormVacuna] = useState({ nombre: '', fecha: '', dosis: '' });
   const [formAlimento, setFormAlimento] = useState({ tipo: '', cantidad: '', fecha: '' });
 
   useEffect(() => {
-    localStorage.setItem('ganado_facil_v2', JSON.stringify(datos));
+    localStorage.setItem('ganado_facil_v3', JSON.stringify(datos));
   }, [datos]);
 
   const animalSel = datos.animales.find(a => a.id === animalSelId);
@@ -155,7 +159,7 @@ export default function App() {
       id: 'int-' + Date.now(),
       codigo: formAnimal.codigo,
       bloqueId: bloqueSel.id,
-      fechaNacimiento: formAnimal.fechaNac,
+      edadEstimada: formAnimal.edadEstimada,
       pesoActual: Number(formAnimal.peso),
       estado: formAnimal.estado,
       notas: formAnimal.notas,
@@ -174,7 +178,7 @@ export default function App() {
       animales: prev.animales.map(a => a.id === animalSelId ? { 
         ...a, 
         codigo: formEditarAnimal.codigo,
-        fechaNacimiento: formEditarAnimal.fechaNac,
+        edadEstimada: formEditarAnimal.edadEstimada,
         notas: formEditarAnimal.notas,
         estado: formEditarAnimal.estado
       } : a)
@@ -338,7 +342,7 @@ export default function App() {
                 <h2 className="m-0 text-base font-bold text-slate-800">{bloqueSel.nombre}</h2>
                 <p className="m-0 text-xs text-slate-500">Raza: {bloqueSel.raza}</p>
               </div>
-              <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors" onClick={() => { setFormAnimal({ codigo: '', peso: '', fechaNac: '', notas: '', estado: 'Saludable' }); setModalNuevoAnimal(true); }}>
+              <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-colors" onClick={() => { setFormAnimal({ codigo: '', peso: '', edadEstimada: '1-2 años', notas: '', estado: 'Saludable' }); setModalNuevoAnimal(true); }}>
                 <Plus size={14} /> Nuevo
               </button>
             </div>
@@ -356,7 +360,7 @@ export default function App() {
                     <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${a.estado === 'Saludable' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>{a.estado}</span>
                   </div>
                   <p className="m-0 text-xs text-slate-600 flex items-center gap-1">
-                    <Scale size={14} /> {a.pesoActual} kg • {calcularEdad(a.fechaNacimiento)}
+                    <Scale size={14} /> {a.pesoActual} kg • {a.edadEstimada}
                   </p>
                 </div>
                 <ChevronRight size={18} className="text-slate-300" />
@@ -372,7 +376,7 @@ export default function App() {
                 <h2 className="m-0 text-base font-bold text-slate-800">Ficha #{animalSel.codigo}</h2>
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-bold bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md">{animalSel.estado}</span>
-                  <button className="text-slate-400 hover:text-blue-600 transition-colors" onClick={() => { setFormEditarAnimal({ codigo: animalSel.codigo, fechaNac: animalSel.fechaNacimiento, notas: animalSel.notas, estado: animalSel.estado }); setModalEditarAnimal(true); }} title="Editar Datos Generales">
+                  <button className="text-slate-400 hover:text-blue-600 transition-colors" onClick={() => { setFormEditarAnimal({ codigo: animalSel.codigo, edadEstimada: animalSel.edadEstimada, notas: animalSel.notas, estado: animalSel.estado }); setModalEditarAnimal(true); }} title="Editar Datos Generales">
                     <Edit size={16} />
                   </button>
                 </div>
@@ -380,9 +384,8 @@ export default function App() {
               
               <div className="grid grid-cols-2 gap-3 text-xs mb-4">
                 <div><span className="text-slate-500 block mb-0.5">Peso Actual:</span><strong className="text-base text-emerald-700">{animalSel.pesoActual} kg</strong></div>
-                <div><span className="text-slate-500 block mb-0.5">Edad:</span><strong className="text-slate-800">{calcularEdad(animalSel.fechaNacimiento)}</strong></div>
-                <div><span className="text-slate-500 block mb-0.5">Nacimiento:</span><strong className="text-slate-800">{animalSel.fechaNacimiento || 'No reg.'}</strong></div>
-                <div><span className="text-slate-500 block mb-0.5">Notas:</span><span className="italic text-slate-600">{animalSel.notas || 'Sin notas'}</span></div>
+                <div><span className="text-slate-500 block mb-0.5">Edad Estimada:</span><strong className="text-slate-800">{animalSel.edadEstimada}</strong></div>
+                <div className="col-span-2"><span className="text-slate-500 block mb-0.5">Notas:</span><span className="italic text-slate-600">{animalSel.notas || 'Sin notas'}</span></div>
               </div>
 
               <div className="grid grid-cols-2 gap-2">
@@ -402,7 +405,7 @@ export default function App() {
                   + Registrar
                 </button>
               </div>
-              {animalSel.vacunas.length === 0 ? <p className="text-xs text-slate-500 m-0">No hay vacunas.</p> : animalSel.vacunas.map(v => {
+              {animalSel.vacunas.length === 0 ? <p className="text-xs text-slate-500 m-0">No hay registros.</p> : animalSel.vacunas.map(v => {
                 const alerta = evaluarAlertaInteligente(v.vacuna, v.fecha);
                 return (
                   <div key={v.id} className="flex flex-col gap-1 text-xs py-2 border-b border-slate-100 last:border-0">
@@ -483,7 +486,12 @@ export default function App() {
               <form onSubmit={crearAnimal} className="flex flex-col gap-3">
                 <input type="text" placeholder="Código (Ej. 105)" required value={formAnimal.codigo} onChange={e => setFormAnimal({...formAnimal, codigo: e.target.value})} className={inputClass} />
                 <input type="number" placeholder="Peso inicial (kg)" required value={formAnimal.peso} onChange={e => setFormAnimal({...formAnimal, peso: e.target.value})} className={inputClass} />
-                <input type="date" required value={formAnimal.fechaNac} onChange={e => setFormAnimal({...formAnimal, fechaNac: e.target.value})} className={inputClass} />
+                
+                <label className="text-xs font-bold text-slate-700">Edad Estimada</label>
+                <select value={formAnimal.edadEstimada} onChange={e => setFormAnimal({...formAnimal, edadEstimada: e.target.value})} className={inputClass}>
+                  {OPCIONES_EDAD.map(opcion => <option key={opcion} value={opcion}>{opcion}</option>)}
+                </select>
+
                 <input type="text" placeholder="Notas (opcional)" value={formAnimal.notas} onChange={e => setFormAnimal({...formAnimal, notas: e.target.value})} className={inputClass} />
                 <div className="flex gap-2 mt-2">
                   <button type="button" className={btnSecondary} onClick={() => setModalNuevoAnimal(false)}>Cancelar</button>
@@ -501,8 +509,12 @@ export default function App() {
               <form onSubmit={guardarEdicionAnimal} className="flex flex-col gap-3">
                 <label className="text-xs font-bold text-slate-700">Código</label>
                 <input type="text" required value={formEditarAnimal.codigo} onChange={e => setFormEditarAnimal({...formEditarAnimal, codigo: e.target.value})} className={inputClass} />
-                <label className="text-xs font-bold text-slate-700">Fecha de Nacimiento</label>
-                <input type="date" required value={formEditarAnimal.fechaNac} onChange={e => setFormEditarAnimal({...formEditarAnimal, fechaNac: e.target.value})} className={inputClass} />
+                
+                <label className="text-xs font-bold text-slate-700">Edad Estimada</label>
+                <select value={formEditarAnimal.edadEstimada} onChange={e => setFormEditarAnimal({...formEditarAnimal, edadEstimada: e.target.value})} className={inputClass}>
+                  {OPCIONES_EDAD.map(opcion => <option key={opcion} value={opcion}>{opcion}</option>)}
+                </select>
+
                 <label className="text-xs font-bold text-slate-700">Notas</label>
                 <input type="text" value={formEditarAnimal.notas} onChange={e => setFormEditarAnimal({...formEditarAnimal, notas: e.target.value})} className={inputClass} />
                 <label className="text-xs font-bold text-slate-700">Estado</label>
@@ -545,11 +557,16 @@ export default function App() {
         {modalVacuna && (
           <div className={modalClass}>
             <div className={modalBoxClass}>
-              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Registrar Vacuna</h3>
+              <h3 className="m-0 mb-4 text-base font-bold text-slate-800">Registrar Sanidad</h3>
               <form onSubmit={agregarVacuna} className="flex flex-col gap-3">
                 <select required value={formVacuna.nombre} onChange={e => setFormVacuna({...formVacuna, nombre: e.target.value})} className={inputClass}>
-                  <option value="">Seleccione vacuna...</option>
-                  {LISTA_VACUNAS_ANUALES.map(v => <option key={v} value={v}>{v}</option>)}
+                  <option value="">Seleccione tratamiento...</option>
+                  <optgroup label="💉 Vacunas Bovinas (Anual)">
+                    {LISTA_VACUNAS_ANUALES.map(v => <option key={v} value={v}>{v}</option>)}
+                  </optgroup>
+                  <optgroup label="🧴 Antiparasitarios y Baños">
+                    {LISTA_CONTROL_PARASITARIO.map(p => <option key={p} value={p}>{p}</option>)}
+                  </optgroup>
                 </select>
                 <input type="date" required value={formVacuna.fecha} onChange={e => setFormVacuna({...formVacuna, fecha: e.target.value})} className={inputClass} />
                 <input type="text" placeholder="Dosis (Ej. 2ml)" required value={formVacuna.dosis} onChange={e => setFormVacuna({...formVacuna, dosis: e.target.value})} className={inputClass} />
