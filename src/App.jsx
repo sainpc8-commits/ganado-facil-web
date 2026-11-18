@@ -70,7 +70,7 @@ const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
   return { texto: `🛡️ Único (${diferenciaDias} d)`, colorBg: '#eff6ff', colorTxt: '#1d4ed8' };
 };
 
-const API_URL = 'http://localhost:3000/api';
+const API_URL = 'https://ganado-facil-api.onrender.com/api';
 
 export default function App() {
   const [authUser, setAuthUser] = useState(() => localStorage.getItem('ganado_auth_user') || null);
