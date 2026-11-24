@@ -4,22 +4,21 @@ const { getAnimales, createAnimal, updateAnimal, deleteAnimal } = require('../co
 const { getPesos, createPeso } = require('../controllers/pesosController');
 const { getSanidad, createSanidad, deleteSanidad } = require('../controllers/sanidadController');
 const { getAlimentacion, createAlimentacion } = require('../controllers/alimentacionController');
+const { verifyToken } = require('../middleware/authMiddleware');
 
-// Rutas de animales
-router.get('/', getAnimales);
-router.post('/', createAnimal);
-router.put('/:id', updateAnimal);
-router.delete('/:id', deleteAnimal);
+router.get('/', verifyToken, getAnimales);
+router.post('/', verifyToken, createAnimal);
+router.put('/:id', verifyToken, updateAnimal);
+router.delete('/:id', verifyToken, deleteAnimal);
 
-// Rutas de sub-recursos (Pesos, Sanidad, Alimentación)
-router.get('/:id/pesos', getPesos);
-router.post('/:id/pesos', createPeso);
+router.get('/:id/pesos', verifyToken, getPesos);
+router.post('/:id/pesos', verifyToken, createPeso);
 
-router.get('/:id/sanidad', getSanidad);
-router.post('/:id/sanidad', createSanidad);
-router.delete('/:id/sanidad/:sanidadId', deleteSanidad);
+router.get('/:id/sanidad', verifyToken, getSanidad);
+router.post('/:id/sanidad', verifyToken, createSanidad);
+router.delete('/:id/sanidad/:sanidadId', verifyToken, deleteSanidad);
 
-router.get('/:id/alimentacion', getAlimentacion);
-router.post('/:id/alimentacion', createAlimentacion);
+router.get('/:id/alimentacion', verifyToken, getAlimentacion);
+router.post('/:id/alimentacion', verifyToken, createAlimentacion);
 
 module.exports = router;
