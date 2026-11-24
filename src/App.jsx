@@ -70,7 +70,7 @@ const evaluarAlertaInteligente = (nombreProducto, fechaAplicacion) => {
   return { texto: `🛡️ Único (${diferenciaDias} d)`, colorBg: '#eff6ff', colorTxt: '#1d4ed8' };
 };
 
-const API_URL = 'https://ganado-facil-api.onrender.com/api';
+const API_URL = 'https://ganado-facil-api.onrender.com/api'; // <-- Asegúrate de que esta sea tu URL real de Render
 
 export default function App() {
   const [authUser, setAuthUser] = useState(() => localStorage.getItem('ganado_auth_user') || null);
@@ -108,6 +108,15 @@ export default function App() {
   const [nuevoBloqueId, setNuevoBloqueId] = useState('');
   const [codigoDestino, setCodigoDestino] = useState('');
 
+  // Función para obtener los headers con el token
+  const getHeaders = () => {
+    const token = localStorage.getItem('ganado_token');
+    return {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    };
+  };
+
   useEffect(() => {
     if (authUser) {
       cargarBloques();
@@ -116,7 +125,7 @@ export default function App() {
 
   const cargarBloques = async () => {
     try {
-      const response = await fetch(`${API_URL}/bloques`);
+      const response = await fetch(`${API_URL}/bloques`, { headers: getHeaders() });
       if (response.ok) {
         const bloquesDB = await response.json();
         setDatos(prev => ({ ...prev, bloques: bloquesDB }));
@@ -128,7 +137,7 @@ export default function App() {
 
   const cargarAnimales = async (bloqueId) => {
     try {
-      const response = await fetch(`${API_URL}/animales?bloque_id=${bloqueId}`);
+      const response = await fetch(`${API_URL}/animales?bloque_id=${bloqueId}`, { headers: getHeaders() });
       if (response.ok) {
         const animalesDB = await response.json();
         setDatos(prev => {
@@ -144,9 +153,9 @@ export default function App() {
   const cargarDetallesAnimal = async (id) => {
     try {
       const [pesosRes, sanidadRes, alimentacionRes] = await Promise.all([
-        fetch(`${API_URL}/animales/${id}/pesos`),
-        fetch(`${API_URL}/animales/${id}/sanidad`),
-        fetch(`${API_URL}/animales/${id}/alimentacion`)
+        fetch(`${API_URL}/animales/${id}/pesos`, { headers: getHeaders() }),
+        fetch(`${API_URL}/animales/${id}/sanidad`, { headers: getHeaders() }),
+        fetch(`${API_URL}/animales/${id}/alimentacion`, { headers: getHeaders() })
       ]);
       
       let pesos = [];
@@ -286,7 +295,7 @@ export default function App() {
     try {
       const response = await fetch(`${API_URL}/bloques`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(formBloque)
       });
       if (response.ok) {
@@ -303,7 +312,7 @@ export default function App() {
     try {
       const response = await fetch(`${API_URL}/bloques/${bloqueSel.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify(formBloque)
       });
       if (response.ok) {
@@ -320,7 +329,7 @@ export default function App() {
 
   const confirmarEliminarBloque = async () => {
     try {
-      const response = await fetch(`${API_URL}/bloques/${modalEliminarBloque}`, { method: 'DELETE' });
+      const response = await fetch(`${API_URL}/bloques/${modalEliminarBloque}`, { method: 'DELETE', headers: getHeaders() });
       if (response.ok) {
         setDatos(prev => ({ ...prev, bloques: prev.bloques.filter(b => b.id !== modalEliminarBloque) }));
         setModalEliminarBloque(null);
@@ -339,7 +348,7 @@ export default function App() {
     try {
       const response = await fetch(`${API_URL}/animales`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           bloqueId: bloqueSel.id,
           codigo: codigoLimpio,
@@ -371,7 +380,7 @@ export default function App() {
     try {
       const response = await fetch(`${API_URL}/animales/${animalSelId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           codigo: codigoLimpio,
           edadEstimada: formEditarAnimal.edadEstimada,
@@ -403,7 +412,7 @@ export default function App() {
     try {
       const response = await fetch(`${API_URL}/animales/${animalSelId}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({
           codigo: codigoLimpio,
           bloqueId: nuevoBloqueId,
@@ -431,7 +440,7 @@ export default function App() {
 
   const confirmarEliminarAnimal = async () => {
     try {
-      const response = await fetch(`${API_URL}/animales/${modalEliminarAnimal}`, { method: 'DELETE' });
+      const response = await fetch(`${API_URL}/animales/${modalEliminarAnimal}`, { method: 'DELETE', headers: getHeaders() });
       if (response.ok) {
         setDatos(prev => ({ ...prev, animales: prev.animales.filter(a => a.id !== modalEliminarAnimal) }));
         setModalEliminarAnimal(null);
@@ -440,17 +449,14 @@ export default function App() {
     } catch (error) { console.error(error); }
   };
 
-  // --- FUNCIONES CON CIERRE INMEDIATO DE MODAL ---
   const actualizarPeso = async (e) => {
     e.preventDefault();
     const pesoGuardar = Number(formPeso.peso);
     const estadoGuardar = formPeso.estado;
     const fechaHoy = new Date().toISOString().split('T')[0];
     
-    // 1. Cerrar modal inmediatamente
     setModalActualizarPeso(false);
 
-    // 2. Actualizar la pantalla (Optimistic UI)
     setDatos(prev => ({
       ...prev,
       animales: prev.animales.map(a => {
@@ -466,11 +472,10 @@ export default function App() {
       })
     }));
 
-    // 3. Guardar en el servidor
     try {
       const response = await fetch(`${API_URL}/animales/${animalSelId}/pesos`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ peso: pesoGuardar, fecha: fechaHoy })
       });
       if (!response.ok) alert("⚠️ Error al guardar el peso en la nube.");
@@ -481,10 +486,8 @@ export default function App() {
     e.preventDefault();
     const vacunaGuardar = { id: 'temp-' + Date.now(), vacuna: formVacuna.nombre, fecha: formVacuna.fecha, dosis: formVacuna.dosis };
     
-    // 1. Cerrar modal inmediatamente
     setModalVacuna(false);
 
-    // 2. Actualizar la pantalla (Optimistic UI)
     setDatos(prev => ({
       ...prev,
       animales: prev.animales.map(a => a.id === animalSelId ? { 
@@ -493,11 +496,10 @@ export default function App() {
       } : a)
     }));
 
-    // 3. Guardar en el servidor
     try {
       const response = await fetch(`${API_URL}/animales/${animalSelId}/sanidad`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ 
           tipo: 'vacuna', 
           producto: formVacuna.nombre, 
@@ -508,7 +510,6 @@ export default function App() {
       
       if (response.ok) {
         const data = await response.json();
-        // Reemplazar el ID temporal con el real
         setDatos(prev => ({
           ...prev,
           animales: prev.animales.map(a => a.id === animalSelId ? { 
@@ -526,10 +527,8 @@ export default function App() {
     e.preventDefault();
     const alimentoGuardar = { id: 'temp-' + Date.now(), tipo: formAlimento.tipo, cantidad: formAlimento.cantidad, fecha: formAlimento.fecha };
     
-    // 1. Cerrar modal inmediatamente
     setModalAlimento(false);
 
-    // 2. Actualizar la pantalla (Optimistic UI)
     setDatos(prev => ({
       ...prev,
       animales: prev.animales.map(a => a.id === animalSelId ? { 
@@ -538,11 +537,10 @@ export default function App() {
       } : a)
     }));
 
-    // 3. Guardar en el servidor
     try {
       const response = await fetch(`${API_URL}/animales/${animalSelId}/alimentacion`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getHeaders(),
         body: JSON.stringify({ tipo: formAlimento.tipo, cantidad: formAlimento.cantidad, fecha: formAlimento.fecha })
       });
       
